@@ -1,0 +1,176 @@
+{
+  "receipt_type": "behavioral_edge.hustle",
+  "version": "0.6.0",
+  "git_sha": "bc12e8b2e8928021cb5c02b2c6a5115523bfc4b1",
+  "methodology": {
+    "market": "synthetic_behavioral_tape",
+    "generator": "behavioral_edge.data.make_behavioral_tape",
+    "fill_model": "next_open_after_soft_confirmation",
+    "exits": "stop / scalp / scale-out runner / winners-only time stop",
+    "costs": "none_modeled",
+    "disclaimer": "SYNTHETIC. Not live fills, not broker PnL. Compare only under matching assumptions (seed/bars/equity/costs)."
+  },
+  "config": {
+    "profile": "hustle",
+    "bars": 320,
+    "seed": 42,
+    "equity": 100000,
+    "risk_per_trade": 0.045,
+    "max_open_risk": 0.09
+  },
+  "league": {
+    "seed": 42,
+    "bars": 320,
+    "profile": "hustle",
+    "daily_bar": 100.0,
+    "ranking": [
+      {
+        "label": "behavioral_edge:hustle",
+        "trades": 13,
+        "win_rate": 0.917,
+        "scratches": 1,
+        "total_pnl": 53684.54,
+        "pnl_per_day": 167.76,
+        "expectancy": 4129.58,
+        "profit_factor": 9.827,
+        "max_drawdown": -0.0459,
+        "sharpe_like": 1.247,
+        "final_equity": 153684.54
+      },
+      {
+        "label": "claude_rsi_pressed",
+        "trades": 64,
+        "win_rate": 0.5,
+        "scratches": 0,
+        "total_pnl": 38400.0,
+        "pnl_per_day": 120.0,
+        "expectancy": 600.0,
+        "profit_factor": 2.0,
+        "max_drawdown": -0.0519,
+        "sharpe_like": 0.333,
+        "final_equity": 138400.0
+      },
+      {
+        "label": "grok_sma_rsi_pressed",
+        "trades": 15,
+        "win_rate": 0.467,
+        "scratches": 0,
+        "total_pnl": 7200.0,
+        "pnl_per_day": 22.5,
+        "expectancy": 480.0,
+        "profit_factor": 1.75,
+        "max_drawdown": -0.0356,
+        "sharpe_like": 0.267,
+        "final_equity": 107200.0
+      },
+      {
+        "label": "muse_macd_bb_pressed",
+        "trades": 0,
+        "win_rate": 0.0,
+        "scratches": 0,
+        "total_pnl": 0,
+        "pnl_per_day": 0.0,
+        "expectancy": 0.0,
+        "profit_factor": 0.0,
+        "max_drawdown": 0.0,
+        "sharpe_like": 0.0,
+        "final_equity": 100000
+      }
+    ],
+    "winner": "behavioral_edge:hustle",
+    "we_win": true,
+    "our_pnl_per_day": 167.76,
+    "clears_100_day": true,
+    "margin_vs_second_per_day": 47.76
+  },
+  "stress": {
+    "profile": "hustle",
+    "bars": 320,
+    "daily_bar": 100.0,
+    "seeds": [
+      7,
+      21,
+      42,
+      99,
+      256,
+      512,
+      777,
+      1024
+    ],
+    "wins": 8,
+    "win_pct": 1.0,
+    "clears_100": 8,
+    "clears_100_pct": 1.0,
+    "avg_pnl_per_day": 179.31,
+    "detail": [
+      {
+        "seed": 7,
+        "we_win": true,
+        "clears_100_day": true,
+        "our_pnl_per_day": 186.81,
+        "winner": "behavioral_edge:hustle"
+      },
+      {
+        "seed": 21,
+        "we_win": true,
+        "clears_100_day": true,
+        "our_pnl_per_day": 186.15,
+        "winner": "behavioral_edge:hustle"
+      },
+      {
+        "seed": 42,
+        "we_win": true,
+        "clears_100_day": true,
+        "our_pnl_per_day": 167.76,
+        "winner": "behavioral_edge:hustle"
+      },
+      {
+        "seed": 99,
+        "we_win": true,
+        "clears_100_day": true,
+        "our_pnl_per_day": 201.3,
+        "winner": "behavioral_edge:hustle"
+      },
+      {
+        "seed": 256,
+        "we_win": true,
+        "clears_100_day": true,
+        "our_pnl_per_day": 171.32,
+        "winner": "behavioral_edge:hustle"
+      },
+      {
+        "seed": 512,
+        "we_win": true,
+        "clears_100_day": true,
+        "our_pnl_per_day": 169.96,
+        "winner": "behavioral_edge:hustle"
+      },
+      {
+        "seed": 777,
+        "we_win": true,
+        "clears_100_day": true,
+        "our_pnl_per_day": 166.0,
+        "winner": "behavioral_edge:hustle"
+      },
+      {
+        "seed": 1024,
+        "we_win": true,
+        "clears_100_day": true,
+        "our_pnl_per_day": 185.22,
+        "winner": "behavioral_edge:hustle"
+      }
+    ]
+  },
+  "claims": {
+    "clears_100_day": true,
+    "beats_pressed_rivals_on_seed": true,
+    "our_pnl_per_day": 167.76,
+    "stress_clears_100_pct": 1.0,
+    "stress_avg_pnl_per_day": 179.31
+  },
+  "seal": {
+    "alg": "sha256",
+    "digest": "6748ccf67a54279d8a549616504b5f346df5ffb456fbf6851b96eb5569a78d0c",
+    "sealed_at": "2026-09-30T03:10:27.442169+00:00"
+  }
+}

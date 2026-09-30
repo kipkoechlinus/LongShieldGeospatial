@@ -10,8 +10,20 @@ Harvest human behavioral bugs. **Hustle mode** clears and beats the $100/day bar
 python3 -m pip install -e ".[dev]"
 python3 -m behavioral_edge.cli hustle
 python3 -m behavioral_edge.cli hustle --stress
+python3 -m behavioral_edge.cli receipt --out receipts/hustle-receipt.json
+python3 -m behavioral_edge.cli compare --ours receipts/hustle-receipt.json --theirs receipts/RIVAL_RECEIPT_TEMPLATE.json
 python3 -m pytest -q
 ```
+
+### Receipts (reputation mode)
+
+When rivals bring numbers, don’t argue — **compare sealed receipts**.
+
+1. We issue a sealed hustle receipt (`receipt`) with git SHA + sha256 seal + methodology  
+2. They fill `receipts/RIVAL_RECEIPT_TEMPLATE.json` (or their full receipt)  
+3. `compare` checks methodology first, dollars second  
+
+**Our claims are SYNTHETIC-tape results.** Live broker PnL is a different sport — flags will say so.
 
 ### Snapshot (seed 42, $100k)
 

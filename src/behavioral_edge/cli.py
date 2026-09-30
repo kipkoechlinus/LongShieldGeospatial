@@ -11,6 +11,13 @@ from behavioral_edge.data import make_behavioral_tape
 from behavioral_edge.engine import BehavioralEdgeEngine
 from behavioral_edge.hustle import run_hustle, run_hustle_stress
 from behavioral_edge.profiles import HIGH_WIN, HUSTLE, PREDATOR, PROFILES
+from behavioral_edge.receipts import (
+    compare_receipts,
+    issue_hustle_receipt,
+    load_receipt,
+    verify_seal,
+    write_receipt,
+)
 from behavioral_edge.risk import RiskConfig
 from behavioral_edge.stress import run_stress
 
@@ -72,11 +79,42 @@ def main(argv: list[str] | None = None) -> int:
     hustle.add_argument("--stress", action="store_true", help="multi-seed $/day stress")
     hustle.add_argument("--json", action="store_true")
 
+    receipt = sub.add_parser(
+        "receipt",
+        help="Issue a sealed, reproducible hustle receipt (reputation-grade)",
+    )
+    receipt.add_argument("--bars", type=int, default=320)
+    receipt.add_argument("--equity", type=float, default=100_000)
+    receipt.add_argument("--seed", type=int, default=42)
+    receipt.add_argument("--profile", choices=sorted(PROFILES), default="hustle")
+    receipt.add_argument(
+        "--out",
+        default="receipts/hustle-receipt.json",
+        help="output path for sealed receipt JSON",
+    )
+    receipt.add_argument("--no-stress", action="store_true")
+    receipt.add_argument("--json", action="store_true")
+
+    compare = sub.add_parser(
+        "compare",
+        help="Bake-off: our sealed receipt vs their receipt JSON",
+    )
+    compare.add_argument("--ours", required=True, help="path to our sealed receipt")
+    compare.add_argument(
+        "--theirs",
+        required=True,
+        help="path to rival receipt JSON (full or simple {name,pnl_per_day,win_rate})",
+    )
+    compare.add_argument("--metric", default="pnl_per_day")
+    compare.add_argument("--json", action="store_true")
+
     args = parser.parse_args(argv)
-    profile = PROFILES[getattr(args, "profile", "hustle")]
+    profile = PROFILES.get(getattr(args, "profile", None) or "hustle", HUSTLE)
     risk = RiskConfig(account_equity=getattr(args, "equity", 100_000))
     engine = BehavioralEdgeEngine(risk=risk, profile=profile)
-    df = make_behavioral_tape(n=args.bars)
+    df = None
+    if args.cmd in {"scan", "demo", "duel", "arena", "stress", "hustle"}:
+        df = make_behavioral_tape(n=args.bars)
 
     if args.cmd == "scan":
         signals = engine.scan_history(df)
@@ -319,6 +357,66 @@ def main(argv: list[str] | None = None) -> int:
                 print(f"Status: under ${report['daily_bar']:.0f}/day — keep pressing.")
             if report["we_win"]:
                 print("Status: BEATS pressed Muse/Claude/Grok on $/day.")
+        return 0
+
+    if args.cmd == "receipt":
+        sealed = issue_hustle_receipt(
+            bars=args.bars,
+            seed=args.seed,
+            equity=args.equity,
+            profile=profile,
+            include_stress=not args.no_stress,
+        )
+        out = write_receipt(sealed, args.out)
+        if args.json:
+            print(json.dumps(sealed, indent=2))
+        else:
+            claims = sealed["claims"]
+            print("SEALED RECEIPT ISSUED")
+            print("=" * 56)
+            print(f"Wrote         : {out}")
+            print(f"Version       : {sealed['version']}")
+            print(f"Git SHA       : {sealed['git_sha'][:12]}")
+            print(f"Seal          : {sealed['seal']['digest'][:16]}…")
+            print(f"Seal valid    : {verify_seal(sealed)}")
+            print(f"$/day         : ${claims['our_pnl_per_day']:,.2f}")
+            print(f"Clears $100/d : {claims['clears_100_day']}")
+            print(f"Beats rivals  : {claims['beats_pressed_rivals_on_seed']}")
+            if claims.get("stress_avg_pnl_per_day") is not None:
+                print(
+                    f"Stress avg $/d: ${claims['stress_avg_pnl_per_day']:,.2f} "
+                    f"(clears {claims['stress_clears_100_pct']:.0%})"
+                )
+            print(f"Market        : {sealed['methodology']['market']}")
+            print(f"Disclaimer    : {sealed['methodology']['disclaimer']}")
+        return 0
+
+    if args.cmd == "compare":
+        ours = load_receipt(args.ours)
+        theirs = load_receipt(args.theirs)
+        report = compare_receipts(ours, theirs, metric=args.metric)
+        if args.json:
+            print(json.dumps(report, indent=2))
+        else:
+            print("RECEIPT BAKE-OFF")
+            print("=" * 56)
+            print(f"Metric        : {report['metric']}")
+            print(
+                f"Ours          : {report['ours']['name']} = {report['ours']['value']} "
+                f"(WR={report['ours']['win_rate']}, seal_ok={report['ours']['seal_ok']})"
+            )
+            print(
+                f"Theirs        : {report['theirs']['name']} = {report['theirs']['value']} "
+                f"(WR={report['theirs']['win_rate']}, seal_ok={report['theirs']['seal_ok']})"
+            )
+            print(f"Delta         : {report['delta']}")
+            print(f"Winner        : {report['winner']}")
+            print(f"Fair fight    : {report['fair_fight']}")
+            if report["methodology_flags"]:
+                print("Flags:")
+                for flag in report["methodology_flags"]:
+                    print(f"  • {flag}")
+            print(report["note"])
         return 0
 
     return 1

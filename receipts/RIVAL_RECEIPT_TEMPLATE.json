@@ -1,0 +1,12 @@
+{
+  "name": "rival_claim",
+  "pnl_per_day": 100.0,
+  "win_rate": 0.55,
+  "notes": "Replace with Muse/Claude receipt. Include methodology for a fair fight.",
+  "methodology": {
+    "market": "REPLACE_ME_live_or_synthetic",
+    "fill_model": "REPLACE_ME",
+    "costs": "REPLACE_ME",
+    "disclaimer": "Paste their real assumptions here."
+  }
+}
