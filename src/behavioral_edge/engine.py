@@ -56,8 +56,8 @@ class BehavioralEdgeEngine:
                 shaped = meta_label(
                     df,
                     shaped,
-                    strict_anchors=self.profile.name != "hustle",
-                    min_edge=0.55 if self.profile.name == "hustle" else 0.62,
+                    strict_anchors=self.profile.name not in {"hustle", "crypto"},
+                    min_edge=0.55 if self.profile.name in {"hustle", "crypto"} else 0.62,
                 )
                 if shaped is None:
                     continue

@@ -42,6 +42,7 @@ When rivals bring numbers, don’t argue — **compare sealed receipts**.
 | Profile | Job |
 |---------|-----|
 | **`hustle`** | Default — $/day mode (4.5% risk, denser tape) |
+| **`crypto`** | Hustle intensity, no FOMO (24/7 chase continues) |
 | `predator` | Rival-hardened quality |
 | `high_win` | Max hit-rate scalps |
 | `balanced` | Larger R |
@@ -52,9 +53,10 @@ Detectors are **σ-adaptive** (20d return std): fixed −3% panic gates were sil
 
 ```bash
 python3 -m behavioral_edge.cli live --months 4 --profile hustle
+python3 -m behavioral_edge.cli live --months 4 --crypto   # BTC/ETH/LTC/ATOM/DOT/AVAX
 ```
 
-**Hustle snapshot** (score `2026-05-30` → `2026-09-30`, $100k/symbol, independent books):
+### Equities — hustle
 
 | Symbol | Trades | WR | $/day | PnL |
 |--------|--------|----|-------|-----|
@@ -63,7 +65,22 @@ python3 -m behavioral_edge.cli live --months 4 --profile hustle
 | IWM | 2 | 0% | −$61 | −$5.1k |
 | QQQ / AAPL | 0 | — | $0 | $0 |
 
-Avg across symbols **~$22/day** — does **not** clear $100/day on this real tape. Best single name (SPY) does. Receipts: `receipts/live-4mo-*.json`.
+Avg **~$22/day** — does **not** clear $100/day. Receipts: `receipts/live-4mo-*.json`.
+
+### Crypto — six of our choice (`crypto` profile)
+
+FOMO fades bled ~−$12k on majors; `crypto` keeps disposition + anchors only.
+
+| Symbol | Trades | WR | $/day | PnL |
+|--------|--------|----|-------|-----|
+| ATOM-USD | 2 | 100% | ~$86 | ~$10.6k |
+| LTC-USD | 5 | 75% | ~$55 | ~$6.7k |
+| BTC-USD | 4 | 67% | ~$40 | ~$4.9k |
+| DOT-USD | 1 | 100% | ~$40 | ~$4.9k |
+| ETH-USD | 5 | 75% | ~$35 | ~$4.3k |
+| AVAX-USD | 3 | 67% | ~$12 | ~$1.5k |
+
+Avg **~$45/day**, avg WR **~81%**, sum PnL **~$33k**. Still under $100/day/symbol. Naive majors (BTC/ETH/SOL/XRP/BNB/DOGE) + hustle FOMO: **−$20/day**. Receipt: `receipts/live-4mo-crypto.json`.
 
 ## Disclaimer
 

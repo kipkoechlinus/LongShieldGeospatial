@@ -122,7 +122,12 @@ def main(argv: list[str] | None = None) -> int:
     live.add_argument(
         "--symbols",
         default="SPY,QQQ,IWM,AAPL,NVDA",
-        help="comma-separated tickers",
+        help="comma-separated tickers (ignored when --crypto is set)",
+    )
+    live.add_argument(
+        "--crypto",
+        action="store_true",
+        help="use the built-in 6-name crypto universe (BTC/ETH/LTC/ATOM/DOT/AVAX)",
     )
     live.add_argument("--json", action="store_true")
     live.add_argument(
@@ -443,9 +448,22 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     if args.cmd == "live":
-        from behavioral_edge.live_test import run_live_window
+        from behavioral_edge.live_test import CRYPTO_UNIVERSE, run_live_window
+        from behavioral_edge.profiles import CRYPTO as CRYPTO_PROFILE
 
-        symbols = tuple(s.strip().upper() for s in args.symbols.split(",") if s.strip())
+        if args.crypto:
+            symbols = CRYPTO_UNIVERSE
+            # --crypto alone defaults onto the crypto profile; explicit --profile wins
+            cli_args = argv if argv is not None else __import__("sys").argv[1:]
+            profile_explicit = any(
+                a == "--profile" or a.startswith("--profile=") for a in cli_args
+            )
+            if not profile_explicit:
+                profile = CRYPTO_PROFILE
+        else:
+            symbols = tuple(
+                s.strip().upper() for s in args.symbols.split(",") if s.strip()
+            )
         report = run_live_window(
             symbols=symbols,
             months=args.months,

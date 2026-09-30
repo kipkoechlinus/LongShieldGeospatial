@@ -178,3 +178,32 @@ def test_hustle_clears_100_a_day_and_beats_pressed_rivals():
     assert report["clears_100_day"], report
     assert report["we_win"], report
     assert float(report["our_pnl_per_day"]) >= 100.0
+
+
+def test_crypto_profile_rejects_fomo():
+    from behavioral_edge.profiles import CRYPTO, apply_profile
+
+    fomo = Signal(
+        kind=SignalKind.FOMO_EXHAUSTION,
+        side="short",
+        strength=0.9,
+        reason="chase",
+        stop_pct=0.02,
+        target_pct=0.04,
+        bar_index=10,
+        confluence=0.5,
+        edge_score=0.9,
+    )
+    dip = Signal(
+        kind=SignalKind.DISPOSITION_CONTINUATION,
+        side="long",
+        strength=0.9,
+        reason="dip",
+        stop_pct=0.02,
+        target_pct=0.04,
+        bar_index=10,
+        confluence=0.5,
+        edge_score=0.9,
+    )
+    assert apply_profile(fomo, CRYPTO) is None
+    assert apply_profile(dip, CRYPTO) is not None

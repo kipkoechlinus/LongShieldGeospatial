@@ -127,11 +127,41 @@ HUSTLE = TradeProfile(
     disable_vol_targeting=True,
 )
 
+# Crypto: same cash intensity as hustle, but FOMO fades are out —
+# on 24/7 tape vertical chase often continues; disposition dips + anchor
+# traps carry the book.
+CRYPTO = TradeProfile(
+    name="crypto",
+    stop_scale=1.0,
+    target_scale=0.90,
+    min_strength=0.55,
+    min_edge=0.56,
+    min_confluence=0.10,
+    time_stop_bars=5,
+    scalp_r=0.90,
+    trail_after_r=0.45,
+    allowed_kinds=frozenset(
+        {
+            SignalKind.DISPOSITION_CONTINUATION,
+            SignalKind.ANCHOR_REJECTION,
+        }
+    ),
+    require_confirmation=True,
+    time_stop_winners_only=True,
+    scale_out_frac=0.40,
+    cooldown_bars=0,
+    min_signal_gap=1,
+    risk_per_trade=0.045,
+    max_open_risk=0.09,
+    disable_vol_targeting=True,
+)
+
 PROFILES: dict[str, TradeProfile] = {
     BALANCED.name: BALANCED,
     HIGH_WIN.name: HIGH_WIN,
     PREDATOR.name: PREDATOR,
     HUSTLE.name: HUSTLE,
+    CRYPTO.name: CRYPTO,
 }
 
 
@@ -155,7 +185,7 @@ def apply_profile(signal: Signal, profile: TradeProfile) -> Signal | None:
         target = min(target, stop * 0.65)
     elif profile.name == "predator":
         target = min(target, stop * 0.70)
-    elif profile.name == "hustle":
+    elif profile.name in {"hustle", "crypto"}:
         target = min(target, stop * 0.90)
     if target <= 0 or stop <= 0:
         return None

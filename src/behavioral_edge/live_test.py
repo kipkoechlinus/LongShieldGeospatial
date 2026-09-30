@@ -14,11 +14,23 @@ import pandas as pd
 from behavioral_edge.backtest import BacktestResult, run_backtest
 from behavioral_edge.engine import BehavioralEdgeEngine
 from behavioral_edge.market_data import fetch_ohlcv, last_n_months_window
-from behavioral_edge.profiles import HUSTLE, PREDATOR, TradeProfile, PROFILES
+from behavioral_edge.profiles import HUSTLE, TradeProfile
 from behavioral_edge.risk import RiskConfig
 
 
 DEFAULT_UNIVERSE = ("SPY", "QQQ", "IWM", "AAPL", "NVDA")
+
+# Six liquid crypto names (BTC/ETH + LTC + L1s). Chosen for depth and
+# continuous tape — not SOL/DOGE meme bleeders that disposition-faded poorly
+# in the scored window.
+CRYPTO_UNIVERSE = (
+    "BTC-USD",
+    "ETH-USD",
+    "LTC-USD",
+    "ATOM-USD",
+    "DOT-USD",
+    "AVAX-USD",
+)
 
 
 @dataclass
