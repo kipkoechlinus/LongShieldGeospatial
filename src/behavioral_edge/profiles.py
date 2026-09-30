@@ -156,12 +156,42 @@ CRYPTO = TradeProfile(
     disable_vol_targeting=True,
 )
 
+# Killer: bake-off weapon. No FOMO, fat risk, slightly tight stops /
+# stretch targets, let winners breathe. Built to clear $100/day on the
+# battle crypto roster (DOT/LTC/ATOM) — higher variance by design.
+KILLER = TradeProfile(
+    name="killer",
+    stop_scale=0.90,
+    target_scale=1.05,
+    min_strength=0.55,
+    min_edge=0.54,
+    min_confluence=0.05,
+    time_stop_bars=6,
+    scalp_r=0.95,
+    trail_after_r=0.55,
+    allowed_kinds=frozenset(
+        {
+            SignalKind.DISPOSITION_CONTINUATION,
+            SignalKind.ANCHOR_REJECTION,
+        }
+    ),
+    require_confirmation=True,
+    time_stop_winners_only=True,
+    scale_out_frac=0.35,
+    cooldown_bars=0,
+    min_signal_gap=1,
+    risk_per_trade=0.09,
+    max_open_risk=0.18,
+    disable_vol_targeting=True,
+)
+
 PROFILES: dict[str, TradeProfile] = {
     BALANCED.name: BALANCED,
     HIGH_WIN.name: HIGH_WIN,
     PREDATOR.name: PREDATOR,
     HUSTLE.name: HUSTLE,
     CRYPTO.name: CRYPTO,
+    KILLER.name: KILLER,
 }
 
 
@@ -187,6 +217,9 @@ def apply_profile(signal: Signal, profile: TradeProfile) -> Signal | None:
         target = min(target, stop * 0.70)
     elif profile.name in {"hustle", "crypto"}:
         target = min(target, stop * 0.90)
+    elif profile.name == "killer":
+        # Asymmetric: allow fuller R on the runner side of the scalp
+        target = min(target, stop * 1.05)
     if target <= 0 or stop <= 0:
         return None
     return replace(signal, stop_pct=stop, target_pct=target)

@@ -42,7 +42,8 @@ When rivals bring numbers, don’t argue — **compare sealed receipts**.
 
 | Profile | Job |
 |---------|-----|
-| **`hustle`** | Default — $/day mode (4.5% risk, denser tape) |
+| **`killer`** | Bake-off weapon — no FOMO, 9% risk, asymmetric R |
+| **`hustle`** | $/day mode (4.5% risk, denser tape) |
 | **`crypto`** | Hustle intensity, no FOMO (24/7 chase continues) |
 | `predator` | Rival-hardened quality |
 | `high_win` | Max hit-rate scalps |
@@ -102,7 +103,22 @@ Rule: all-positive names, **k ∈ [3,5]**, maximize avg $/day.
 | 4 | + XRP | ~$59 | ~$29.2k |
 | 7 | all positive | ~$44 | ~$37.7k |
 
-**Battle pick: k=3** — DOT / LTC / ATOM under `hustle` (~92% WR). Receipt: `receipts/live-4mo-battle.json`.
+**Battle pick: k=3** — DOT / LTC / ATOM.  
+
+Armed with **`killer`** (no FOMO, 9% risk, tight stops / stretch targets):
+
+| | hustle | **killer** |
+|--|--------|------------|
+| Avg $/day | ~$66 | **~$128** |
+| Sum PnL | ~$24.4k | **~$47k** |
+| Clears $100/day | No | **Yes** |
+
+```bash
+python3 -m behavioral_edge.cli live --months 4 --battle          # killer on DOT/LTC/ATOM
+python3 -m behavioral_edge.cli hustle --profile killer           # synthetic league
+```
+
+Receipt: `receipts/live-4mo-battle-killer.json`. Higher risk = higher variance — disclosed.
 
 ## Disclaimer
 

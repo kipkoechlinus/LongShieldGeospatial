@@ -53,11 +53,14 @@ class BehavioralEdgeEngine:
             if shaped is None:
                 continue
             if self.use_meta:
+                cash_mode = self.profile.name in {"hustle", "crypto", "killer"}
                 shaped = meta_label(
                     df,
                     shaped,
-                    strict_anchors=self.profile.name not in {"hustle", "crypto"},
-                    min_edge=0.55 if self.profile.name in {"hustle", "crypto"} else 0.62,
+                    strict_anchors=not cash_mode,
+                    min_edge=0.52 if self.profile.name == "killer" else (
+                        0.55 if cash_mode else 0.62
+                    ),
                 )
                 if shaped is None:
                     continue

@@ -80,5 +80,15 @@
     "best_symbol": "ATOM-USD",
     "best_pnl_per_day": 202.39
   },
-  "disclaimer": "REAL MARKET DATA via yfinance, but still a research backtest: no commissions/slippage, next-open fills, per-symbol independent books. Not live trading PnL. Synthetic sealed receipts are a separate claim."
+  "disclaimer": "REAL MARKET DATA via yfinance, but still a research backtest: no commissions/slippage, next-open fills, per-symbol independent books. Not live trading PnL. Synthetic sealed receipts are a separate claim.",
+  "strategy": "killer",
+  "battle_claim": {
+    "clears_100_day_avg": true,
+    "avg_pnl_per_day": 139.79,
+    "sum_total_pnl": 51582.12,
+    "avg_win_rate": 0.917,
+    "vs_hustle_avg_day": 66.13,
+    "risk_per_trade": 0.09,
+    "note": "Higher risk than hustle (9% vs 4.5%). Research backtest."
+  }
 }

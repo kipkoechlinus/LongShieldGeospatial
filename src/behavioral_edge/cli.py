@@ -10,7 +10,7 @@ from behavioral_edge.backtest import head_to_head, run_backtest
 from behavioral_edge.data import make_behavioral_tape
 from behavioral_edge.engine import BehavioralEdgeEngine
 from behavioral_edge.hustle import run_hustle, run_hustle_stress
-from behavioral_edge.profiles import HIGH_WIN, HUSTLE, PREDATOR, PROFILES
+from behavioral_edge.profiles import HIGH_WIN, HUSTLE, KILLER, PREDATOR, PROFILES
 from behavioral_edge.receipts import (
     compare_receipts,
     issue_hustle_receipt,
@@ -137,7 +137,12 @@ def main(argv: list[str] | None = None) -> int:
     live.add_argument(
         "--battle",
         action="store_true",
-        help="optimal crypto battle roster from subset sweep (DOT/LTC/ATOM)",
+        help="optimal crypto battle roster (DOT/LTC/ATOM) with killer profile",
+    )
+    live.add_argument(
+        "--killer",
+        action="store_true",
+        help="force killer profile (no FOMO, 9% risk — bake-off weapon)",
     )
     live.add_argument("--json", action="store_true")
     live.add_argument(
@@ -585,10 +590,12 @@ def main(argv: list[str] | None = None) -> int:
             a == "--profile" or a.startswith("--profile=") for a in cli_args
         )
 
+        if args.killer and not profile_explicit:
+            profile = KILLER
         if args.battle:
             symbols = BATTLE_CRYPTO_UNIVERSE
             if not profile_explicit:
-                profile = HUSTLE  # sweep winner profile
+                profile = KILLER  # bake-off weapon on the sweep roster
         elif args.champion:
             symbols = (CHAMPION_ASSET,)
             if not profile_explicit:

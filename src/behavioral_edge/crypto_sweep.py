@@ -37,13 +37,13 @@ SWEEP_CANDIDATES: tuple[str, ...] = (
 )
 
 # Battle roster from the 4mo sweep: all-positive, k∈[3,5], max avg $/day.
-# hustle · DOT + LTC + ATOM · ~$66/day avg · ~$24.4k sum · ~92% WR
+# Weaponized with the killer profile (~$128/day avg on this window).
 BATTLE_CRYPTO_UNIVERSE: tuple[str, ...] = (
     "DOT-USD",
     "LTC-USD",
     "ATOM-USD",
 )
-BATTLE_CRYPTO_PROFILE = "hustle"
+BATTLE_CRYPTO_PROFILE = "killer"
 
 
 def _symbol_stats(

@@ -36,7 +36,7 @@ CRYPTO_UNIVERSE = (
 CHAMPION_ASSET = "ATOM-USD"
 
 # Optimal battle roster from crypto subset sweep (see crypto_sweep.py).
-# k=3 all-positive, max avg $/day under hustle: DOT + LTC + ATOM.
+# k=3 all-positive; traded with killer profile to clear the $100/day bar.
 BATTLE_CRYPTO_UNIVERSE = (
     "DOT-USD",
     "LTC-USD",

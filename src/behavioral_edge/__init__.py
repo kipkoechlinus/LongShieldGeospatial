@@ -4,4 +4,4 @@ from behavioral_edge.engine import BehavioralEdgeEngine
 from behavioral_edge.signals import Signal, SignalKind
 
 __all__ = ["BehavioralEdgeEngine", "Signal", "SignalKind"]
-__version__ = "0.7.1"
+__version__ = "0.8.0"

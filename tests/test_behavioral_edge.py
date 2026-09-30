@@ -213,9 +213,51 @@ def test_battle_crypto_roster_is_sweep_winner():
     from behavioral_edge.crypto_sweep import BATTLE_CRYPTO_UNIVERSE, BATTLE_CRYPTO_PROFILE
     from behavioral_edge.live_test import BATTLE_CRYPTO_UNIVERSE as LIVE_BATTLE
 
-    assert BATTLE_CRYPTO_PROFILE == "hustle"
+    assert BATTLE_CRYPTO_PROFILE == "killer"
     assert BATTLE_CRYPTO_UNIVERSE == ("DOT-USD", "LTC-USD", "ATOM-USD")
     assert LIVE_BATTLE == BATTLE_CRYPTO_UNIVERSE
+
+
+def test_killer_rejects_fomo_and_sizes_up():
+    from behavioral_edge.profiles import KILLER, apply_profile
+
+    fomo = Signal(
+        kind=SignalKind.FOMO_EXHAUSTION,
+        side="short",
+        strength=0.95,
+        reason="chase",
+        stop_pct=0.02,
+        target_pct=0.04,
+        bar_index=10,
+        confluence=0.5,
+        edge_score=0.95,
+    )
+    dip = Signal(
+        kind=SignalKind.DISPOSITION_CONTINUATION,
+        side="long",
+        strength=0.9,
+        reason="dip",
+        stop_pct=0.02,
+        target_pct=0.04,
+        bar_index=10,
+        confluence=0.5,
+        edge_score=0.9,
+    )
+    assert apply_profile(fomo, KILLER) is None
+    shaped = apply_profile(dip, KILLER)
+    assert shaped is not None
+    assert KILLER.risk_per_trade == 0.09
+    assert shaped.stop_pct <= 0.02 * 0.90 + 1e-9
+
+
+def test_killer_clears_100_a_day_on_synthetic():
+    from behavioral_edge.hustle import run_hustle
+    from behavioral_edge.profiles import KILLER
+
+    report = run_hustle(bars=320, seed=42, profile=KILLER)
+    assert report["clears_100_day"], report
+    assert report["we_win"], report
+    assert float(report["our_pnl_per_day"]) >= 100.0
 
 
 def test_combo_rec_ranks_positive_books():

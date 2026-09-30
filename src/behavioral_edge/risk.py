@@ -60,8 +60,15 @@ def size_position(
     edge_mult = 0.80 + 0.45 * edge
     if edge >= 0.95:
         edge_mult *= 1.20
+    # Killer mode runs 9% risk — allow a sharper pyramid on elite edges
+    if config.risk_per_trade >= 0.08 and edge >= 0.90:
+        edge_mult *= 1.15
     risk_dollars *= edge_mult
-    risk_dollars = min(risk_dollars, remaining, risk_budget * 1.35)
+    risk_dollars = min(
+        risk_dollars,
+        remaining,
+        risk_budget * (1.50 if config.risk_per_trade >= 0.08 else 1.35),
+    )
 
     # Vol targeting: shrink when realized vol >> target (rivals keep full size and die)
     if (
