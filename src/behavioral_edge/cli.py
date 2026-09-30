@@ -9,7 +9,8 @@ from behavioral_edge.arena import run_arena
 from behavioral_edge.backtest import head_to_head, run_backtest
 from behavioral_edge.data import make_behavioral_tape
 from behavioral_edge.engine import BehavioralEdgeEngine
-from behavioral_edge.profiles import HIGH_WIN, PREDATOR, PROFILES
+from behavioral_edge.hustle import run_hustle, run_hustle_stress
+from behavioral_edge.profiles import HIGH_WIN, HUSTLE, PREDATOR, PROFILES
 from behavioral_edge.risk import RiskConfig
 from behavioral_edge.stress import run_stress
 
@@ -27,8 +28,8 @@ def main(argv: list[str] | None = None) -> int:
     demo.add_argument(
         "--profile",
         choices=sorted(PROFILES),
-        default="predator",
-        help="predator=arena mode; high_win=hit-rate; balanced=larger R",
+        default="hustle",
+        help="hustle=$/day mode; predator=arena; high_win=hit-rate; balanced=larger R",
     )
     demo.add_argument("--json", action="store_true")
 
@@ -60,8 +61,19 @@ def main(argv: list[str] | None = None) -> int:
     stress.add_argument("--profile", choices=sorted(PROFILES), default="predator")
     stress.add_argument("--json", action="store_true")
 
+    hustle = sub.add_parser(
+        "hustle",
+        help="$/day league vs pressed Muse/Claude/Grok stacks (clear the $100/day bar)",
+    )
+    hustle.add_argument("--bars", type=int, default=320)
+    hustle.add_argument("--equity", type=float, default=100_000)
+    hustle.add_argument("--seed", type=int, default=42)
+    hustle.add_argument("--profile", choices=sorted(PROFILES), default="hustle")
+    hustle.add_argument("--stress", action="store_true", help="multi-seed $/day stress")
+    hustle.add_argument("--json", action="store_true")
+
     args = parser.parse_args(argv)
-    profile = PROFILES[getattr(args, "profile", "predator")]
+    profile = PROFILES[getattr(args, "profile", "hustle")]
     risk = RiskConfig(account_equity=getattr(args, "equity", 100_000))
     engine = BehavioralEdgeEngine(risk=risk, profile=profile)
     df = make_behavioral_tape(n=args.bars)
@@ -110,6 +122,8 @@ def main(argv: list[str] | None = None) -> int:
                 print("Mode: HIGH WIN — bank early, leave meat, stack hits")
             if profile.name == PREDATOR.name:
                 print("Mode: PREDATOR — meta-label + ATR + anti-rival fade")
+            if profile.name == HUSTLE.name:
+                print("Mode: HUSTLE — sized up to clear the $100/day bar")
             print(f"Signals fired : {payload['signals']}")
             print(f"Trades taken  : {payload['trades']}")
             print(
@@ -120,6 +134,7 @@ def main(argv: list[str] | None = None) -> int:
             print(f"Profit factor : {payload['profit_factor']}")
             print(f"Max drawdown  : {payload['max_drawdown']:.2%}")
             print(f"Sharpe-like   : {payload['sharpe_like']}")
+            print(f"PnL / day     : ${payload.get('pnl_per_day', 0):,.2f}")
             print(f"Total PnL     : ${payload['total_pnl']:,.2f}")
             print(f"Final equity  : ${payload['final_equity']:,.2f}")
             if payload["trade_log"]:
@@ -233,6 +248,77 @@ def main(argv: list[str] | None = None) -> int:
                     f"WR={row['our_win_rate']:.0%}  "
                     f"PnL=${row['our_pnl']:,.0f}"
                 )
+        return 0
+
+    if args.cmd == "hustle":
+        if args.stress:
+            report = run_hustle_stress(
+                bars=args.bars,
+                equity=args.equity,
+                profile=profile,
+            )
+            if args.json:
+                print(json.dumps(report, indent=2))
+            else:
+                print(f"HUSTLE STRESS — {len(report['seeds'])} seeds  profile={report['profile']}")
+                print("=" * 64)
+                print(
+                    f"League wins    : {report['wins']}/{len(report['seeds'])} "
+                    f"({report['win_pct']:.0%})"
+                )
+                print(
+                    f"Clears $100/d  : {report['clears_100']}/{len(report['seeds'])} "
+                    f"({report['clears_100_pct']:.0%})"
+                )
+                print(f"Avg $/day      : ${report['avg_pnl_per_day']:,.2f}")
+                print("\nPer seed:")
+                for row in report["detail"]:
+                    flag = "WIN" if row["we_win"] else "LOSS"
+                    bar = "✓$100" if row["clears_100_day"] else "under"
+                    print(
+                        f"  seed={row['seed']:<5} {flag:<4} {bar:<6}  "
+                        f"${row['our_pnl_per_day']:>8,.2f}/day  "
+                        f"(top={row['winner']})"
+                    )
+            return 0
+
+        report = run_hustle(
+            bars=args.bars,
+            seed=args.seed,
+            equity=args.equity,
+            profile=profile,
+        )
+        if args.json:
+            print(json.dumps(report, indent=2))
+        else:
+            print(
+                f"HUSTLE LEAGUE — $/day vs pressed Muse/Claude/Grok  "
+                f"(profile={report['profile']}, seed={report['seed']})"
+            )
+            print("=" * 72)
+            print(
+                f"{'rank':<5} {'fighter':<28} {'WR':>7} {'$/day':>10} "
+                f"{'PnL':>12} {'DD':>8}"
+            )
+            for i, row in enumerate(report["ranking"], 1):
+                mark = " ←" if i == 1 else ""
+                print(
+                    f"{i:<5} {row['label']:<28} {row['win_rate']:>7.1%} "
+                    f"${row['pnl_per_day']:>9,.2f} "
+                    f"${row['total_pnl']:>11,.0f} "
+                    f"{row['max_drawdown']:>8.2%}{mark}"
+                )
+            print("-" * 72)
+            print(
+                f"Winner: {report['winner']}  | our $/day ${report['our_pnl_per_day']:,.2f}  "
+                f"| margin/day ${report['margin_vs_second_per_day']:,.2f}"
+            )
+            if report["clears_100_day"]:
+                print(f"Status: CLEARS THE ${report['daily_bar']:.0f}/DAY BAR.")
+            else:
+                print(f"Status: under ${report['daily_bar']:.0f}/day — keep pressing.")
+            if report["we_win"]:
+                print("Status: BEATS pressed Muse/Claude/Grok on $/day.")
         return 0
 
     return 1

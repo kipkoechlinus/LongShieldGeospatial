@@ -20,14 +20,28 @@ class BehavioralEdgeEngine:
     use_meta: bool = True
 
     def __post_init__(self) -> None:
+        p = self.profile
+        target_vol = self.risk.target_vol
+        if p.disable_vol_targeting:
+            target_vol = None
+        elif p.target_vol is not None:
+            target_vol = p.target_vol
         self.risk = RiskConfig(
             account_equity=self.risk.account_equity,
-            risk_per_trade=self.risk.risk_per_trade,
-            max_open_risk=self.risk.max_open_risk,
-            min_strength=self.profile.min_strength,
-            min_edge=self.profile.min_edge,
+            risk_per_trade=(
+                p.risk_per_trade
+                if p.risk_per_trade is not None
+                else self.risk.risk_per_trade
+            ),
+            max_open_risk=(
+                p.max_open_risk
+                if p.max_open_risk is not None
+                else self.risk.max_open_risk
+            ),
+            min_strength=p.min_strength,
+            min_edge=p.min_edge,
             max_positions=self.risk.max_positions,
-            target_vol=self.risk.target_vol,
+            target_vol=target_vol,
         )
 
     def signals_at(self, df: pd.DataFrame, i: int | None = None) -> list[Signal]:
@@ -39,7 +53,12 @@ class BehavioralEdgeEngine:
             if shaped is None:
                 continue
             if self.use_meta:
-                shaped = meta_label(df, shaped)
+                shaped = meta_label(
+                    df,
+                    shaped,
+                    strict_anchors=self.profile.name != "hustle",
+                    min_edge=0.55 if self.profile.name == "hustle" else 0.62,
+                )
                 if shaped is None:
                     continue
             out.append(shaped)

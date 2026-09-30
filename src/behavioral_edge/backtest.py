@@ -100,6 +100,14 @@ class BacktestResult:
             }
         return out
 
+    @property
+    def trading_days(self) -> int:
+        return max(1, len(self.equity_curve) - 1)
+
+    @property
+    def pnl_per_day(self) -> float:
+        return self.total_pnl / self.trading_days
+
     def summary(self) -> dict[str, float | int | str]:
         return {
             "label": self.label,
@@ -107,6 +115,7 @@ class BacktestResult:
             "win_rate": round(self.win_rate, 3),
             "scratches": self.scratch_count,
             "total_pnl": round(self.total_pnl, 2),
+            "pnl_per_day": round(self.pnl_per_day, 2),
             "expectancy": round(self.expectancy, 2),
             "profit_factor": round(self.profit_factor, 3)
             if self.profit_factor != float("inf")

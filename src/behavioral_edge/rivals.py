@@ -117,7 +117,12 @@ def _run_rule_system(
 
 
 def rival_muse_macd_bb(
-    df: pd.DataFrame, *, equity: float = 100_000.0
+    df: pd.DataFrame,
+    *,
+    equity: float = 100_000.0,
+    risk_frac: float = 0.005,
+    stop_pct: float = 0.02,
+    target_pct: float = 0.04,
 ) -> BacktestResult:
     """
     Muse-class starter: MACD cross + Bollinger touch.
@@ -144,11 +149,24 @@ def rival_muse_macd_bb(
             return "short"
         return None
 
-    return _run_rule_system(df, side_at, label="muse_macd_bb", equity=equity)
+    return _run_rule_system(
+        df,
+        side_at,
+        label="muse_macd_bb",
+        equity=equity,
+        risk_frac=risk_frac,
+        stop_pct=stop_pct,
+        target_pct=target_pct,
+    )
 
 
 def rival_grok_sma_rsi(
-    df: pd.DataFrame, *, equity: float = 100_000.0
+    df: pd.DataFrame,
+    *,
+    equity: float = 100_000.0,
+    risk_frac: float = 0.005,
+    stop_pct: float = 0.025,
+    target_pct: float = 0.05,
 ) -> BacktestResult:
     """
     Grok-class starter: SMA trend filter + RSI pullback entry.
@@ -172,8 +190,9 @@ def rival_grok_sma_rsi(
         side_at,
         label="grok_sma_rsi",
         equity=equity,
-        stop_pct=0.025,
-        target_pct=0.05,
+        risk_frac=risk_frac,
+        stop_pct=stop_pct,
+        target_pct=target_pct,
     )
 
 

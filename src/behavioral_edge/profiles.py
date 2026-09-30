@@ -1,4 +1,4 @@
-"""Trade profiles — choose expectancy shape. High-win takes profit early."""
+"""Trade profiles — choose expectancy shape and cash intensity."""
 
 from __future__ import annotations
 
@@ -12,9 +12,8 @@ class TradeProfile:
     """
     Shapes how signals are traded.
 
-    high_win: small targets, early scalp, wider stops, never time-stop a loser —
-              leave meat on the table to stack wins.
-    balanced: larger R multiple hunt.
+    high_win / predator: quality + hit-rate.
+    hustle: size up + denser entries to clear a $/day bar (still mechanical).
     """
 
     name: str
@@ -28,14 +27,15 @@ class TradeProfile:
     trail_after_r: float = 1.0
     allowed_kinds: frozenset[SignalKind] | None = None
     require_confirmation: bool = True
-    # If True, time stop only banks green trades (never crystallizes a loser)
     time_stop_winners_only: bool = False
-    # Bank this fraction at scalp; leave runner with BE stop (0 = full scalp exit)
     scale_out_frac: float = 0.0
-    # Bars to cool down after a full stop-out
     cooldown_bars: int = 0
-    # Min bars between entries
     min_signal_gap: int = 0
+    # Optional risk overrides (None = keep RiskConfig defaults)
+    risk_per_trade: float | None = None
+    max_open_risk: float | None = None
+    target_vol: float | None = None
+    disable_vol_targeting: bool = False
 
 
 BALANCED = TradeProfile(
@@ -53,14 +53,13 @@ BALANCED = TradeProfile(
 
 HIGH_WIN = TradeProfile(
     name="high_win",
-    # Wider stop (survive noise) + tiny target (bank the bounce)
     stop_scale=1.25,
     target_scale=0.30,
     min_strength=0.55,
     min_edge=0.58,
     min_confluence=0.15,
     time_stop_bars=3,
-    scalp_r=0.55,  # bank at +0.55R
+    scalp_r=0.55,
     trail_after_r=0.30,
     allowed_kinds=frozenset(
         {
@@ -74,10 +73,9 @@ HIGH_WIN = TradeProfile(
     time_stop_winners_only=True,
 )
 
-# Predator: hardened for rival stress — scale-out + cooldown + gap
 PREDATOR = TradeProfile(
     name="predator",
-    stop_scale=1.0,  # meta ATR overwrites stops; keep scale neutral
+    stop_scale=1.0,
     target_scale=0.55,
     min_strength=0.58,
     min_edge=0.62,
@@ -87,7 +85,6 @@ PREDATOR = TradeProfile(
     trail_after_r=0.30,
     allowed_kinds=frozenset(
         {
-            # Disposition dips kept out of predator — higher variance vs rivals
             SignalKind.PANIC_CAPITULATION,
             SignalKind.ANCHOR_REJECTION,
             SignalKind.FOMO_EXHAUSTION,
@@ -95,15 +92,45 @@ PREDATOR = TradeProfile(
     ),
     require_confirmation=True,
     time_stop_winners_only=True,
-    scale_out_frac=0.60,  # bank 60% early; runner hunts remainder
+    scale_out_frac=0.60,
     cooldown_bars=2,
     min_signal_gap=3,
+)
+
+# Hustle: clear / beat the $100/day brag with size + frequency
+HUSTLE = TradeProfile(
+    name="hustle",
+    stop_scale=1.0,
+    target_scale=0.90,
+    min_strength=0.55,
+    min_edge=0.56,
+    min_confluence=0.10,
+    time_stop_bars=5,
+    scalp_r=0.90,
+    trail_after_r=0.45,  # don't BE-trail so early we scratch winners
+    allowed_kinds=frozenset(
+        {
+            # Panic kept out — waterfall entries were stopping out the book
+            SignalKind.DISPOSITION_CONTINUATION,
+            SignalKind.ANCHOR_REJECTION,
+            SignalKind.FOMO_EXHAUSTION,
+        }
+    ),
+    require_confirmation=True,
+    time_stop_winners_only=True,
+    scale_out_frac=0.40,
+    cooldown_bars=0,
+    min_signal_gap=1,
+    risk_per_trade=0.045,
+    max_open_risk=0.09,
+    disable_vol_targeting=True,
 )
 
 PROFILES: dict[str, TradeProfile] = {
     BALANCED.name: BALANCED,
     HIGH_WIN.name: HIGH_WIN,
     PREDATOR.name: PREDATOR,
+    HUSTLE.name: HUSTLE,
 }
 
 
@@ -123,8 +150,12 @@ def apply_profile(signal: Signal, profile: TradeProfile) -> Signal | None:
     if profile.scalp_r is not None:
         target = min(target, stop * profile.scalp_r)
     target = max(target, stop * 0.45)
-    if profile.name in {"high_win", "predator"}:
-        target = min(target, stop * (0.65 if profile.name == "high_win" else 0.70))
+    if profile.name == "high_win":
+        target = min(target, stop * 0.65)
+    elif profile.name == "predator":
+        target = min(target, stop * 0.70)
+    elif profile.name == "hustle":
+        target = min(target, stop * 0.90)
     if target <= 0 or stop <= 0:
         return None
     return replace(signal, stop_pct=stop, target_pct=target)

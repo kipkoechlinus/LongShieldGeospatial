@@ -80,7 +80,13 @@ def _rival_macd_side(df: pd.DataFrame, i: int) -> str | None:
     return None
 
 
-def meta_label(df: pd.DataFrame, signal: Signal) -> Signal | None:
+def meta_label(
+    df: pd.DataFrame,
+    signal: Signal,
+    *,
+    strict_anchors: bool = True,
+    min_edge: float = 0.62,
+) -> Signal | None:
     """
     Upgrade or veto a signal.
 
@@ -151,12 +157,14 @@ def meta_label(df: pd.DataFrame, signal: Signal) -> Signal | None:
         + min(0.12, herd * 0.9)
         + (0.05 if 0.85 <= vol_ratio <= 1.7 or climax else 0.0),
     )
-    if edge < 0.62:
+    if edge < min_edge:
         return None
 
     # Anchors without rival crowding are often noise — demand higher conviction
+    # (hustle relaxes this for frequency / $/day)
     if (
-        signal.kind == SignalKind.ANCHOR_REJECTION
+        strict_anchors
+        and signal.kind == SignalKind.ANCHOR_REJECTION
         and anti_rival <= 0
         and edge < 0.88
     ):

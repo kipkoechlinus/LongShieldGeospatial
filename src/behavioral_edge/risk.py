@@ -56,7 +56,11 @@ def size_position(
         return None
 
     risk_dollars = min(risk_budget, remaining)
-    risk_dollars *= 0.75 + 0.6 * edge
+    # Edge scales size; elite prints get a mild pyramid, hard-capped
+    edge_mult = 0.80 + 0.45 * edge
+    if edge >= 0.95:
+        edge_mult *= 1.20
+    risk_dollars *= edge_mult
     risk_dollars = min(risk_dollars, remaining, risk_budget * 1.35)
 
     # Vol targeting: shrink when realized vol >> target (rivals keep full size and die)

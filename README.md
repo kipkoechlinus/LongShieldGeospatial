@@ -1,42 +1,37 @@
 # Behavioral Edge
 
-Harvest human behavioral bugs. Hardened to beat Muse/Grok-class indicator stacks across many seeds — not just one lucky tape.
+Harvest human behavioral bugs. **Hustle mode** clears and beats the $100/day bar vs pressed Muse/Claude/Grok stacks.
 
 > Not financial advice. Synthetic demos. Live trading can lose money.
 
-## v5 Predator (hardened)
-
-- Cleaner trap detector (pierce + CLV + volume)
-- Meta-labeler: climax-aware vol bands, Muse+Grok crowding fade, weak-anchor veto
-- Scale-out (bank 60%, runner with BE)
-- Conflict veto, cooldown, signal gap
-- **Stress CLI** — multi-seed arena
+## Hustle league ($/day)
 
 ```bash
 python3 -m pip install -e ".[dev]"
-python3 -m behavioral_edge.cli arena --profile predator
-python3 -m behavioral_edge.cli stress --profile predator
+python3 -m behavioral_edge.cli hustle
+python3 -m behavioral_edge.cli hustle --stress
 python3 -m pytest -q
 ```
 
-### Stress snapshot (10 seeds)
+### Snapshot (seed 42, $100k)
 
-| Metric | Result |
-|--------|--------|
-| Arena #1 wins | **7/10 (70%)** |
-| Beat Muse+Grok | **8/10 (80%)** |
-| Avg win rate | **~91%** |
-| Avg PnL | **positive** |
+| Fighter | WR | $/day |
+|---------|----|-------|
+| **behavioral_edge:hustle** | **91.7%** | **~$168** |
+| claude_rsi_pressed | 50% | ~$120 |
+| grok_sma_rsi_pressed | 47% | ~$22 |
+| muse_macd_bb_pressed | 0% | $0 |
 
-Muse = MACD+BB · Grok = SMA50+RSI · also ranked vs classic RSI fade.
+**Stress:** 8/8 seeds clear $100/day · 8/8 league wins · avg **~$179/day**
 
 ## Profiles
 
 | Profile | Job |
 |---------|-----|
-| `predator` | Default — arena / rival-hardened |
+| **`hustle`** | Default — $/day mode (4.5% risk, denser tape) |
+| `predator` | Rival-hardened quality |
 | `high_win` | Max hit-rate scalps |
-| `balanced` | Larger R (includes disposition dips) |
+| `balanced` | Larger R |
 
 ## Disclaimer
 
