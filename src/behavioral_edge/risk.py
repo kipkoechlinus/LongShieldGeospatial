@@ -1,4 +1,4 @@
-"""Mechanical risk: the anti-human module. No hope, no heroics."""
+"""Mechanical risk: anti-human + vol-targeted sizing."""
 
 from __future__ import annotations
 
@@ -13,8 +13,10 @@ class RiskConfig:
     risk_per_trade: float = 0.005  # 0.5% account risk
     max_open_risk: float = 0.015  # 1.5% total open risk
     min_strength: float = 0.55
-    min_edge: float = 0.55  # regime + confluence gate
+    min_edge: float = 0.55
     max_positions: int = 3
+    # Annualized vol target; None disables vol targeting
+    target_vol: float | None = 0.12
 
 
 @dataclass(frozen=True)
@@ -34,12 +36,11 @@ def size_position(
     config: RiskConfig,
     open_risk_dollars: float = 0.0,
     open_positions: int = 0,
+    realized_vol: float | None = None,
 ) -> PositionPlan | None:
     """
-    Position sizing that exploits *our* discipline vs their emotion.
-
-    Gate on edge_score (regime + confluence + R:R), then size from stop.
-    Conviction scales risk gently — never revenge-size.
+    Gate on edge_score, size from stop, optionally scale to target vol.
+    Rivals use fixed fractional only — we adapt to the weather.
     """
     if price <= 0:
         raise ValueError("price must be positive")
@@ -55,9 +56,17 @@ def size_position(
         return None
 
     risk_dollars = min(risk_budget, remaining)
-    # Scale with edge, hard-capped at 1.35x base risk
     risk_dollars *= 0.75 + 0.6 * edge
     risk_dollars = min(risk_dollars, remaining, risk_budget * 1.35)
+
+    # Vol targeting: shrink when realized vol >> target (rivals keep full size and die)
+    if (
+        config.target_vol is not None
+        and realized_vol is not None
+        and realized_vol > 0
+    ):
+        vol_scale = min(1.25, max(0.35, config.target_vol / realized_vol))
+        risk_dollars *= vol_scale
 
     stop_distance = price * signal.stop_pct
     shares = risk_dollars / stop_distance

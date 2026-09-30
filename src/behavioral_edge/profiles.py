@@ -68,9 +68,33 @@ HIGH_WIN = TradeProfile(
     time_stop_winners_only=True,
 )
 
+# Predator: high_win exits + stricter gates — built to win the Muse/Grok arena
+PREDATOR = TradeProfile(
+    name="predator",
+    stop_scale=1.0,  # meta ATR overwrites stops; keep scale neutral
+    target_scale=0.55,
+    min_strength=0.58,
+    min_edge=0.62,
+    min_confluence=0.20,
+    time_stop_bars=3,
+    scalp_r=0.60,
+    trail_after_r=0.35,
+    allowed_kinds=frozenset(
+        {
+            SignalKind.PANIC_CAPITULATION,
+            SignalKind.DISPOSITION_CONTINUATION,
+            SignalKind.ANCHOR_REJECTION,
+            SignalKind.FOMO_EXHAUSTION,
+        }
+    ),
+    require_confirmation=True,
+    time_stop_winners_only=True,
+)
+
 PROFILES: dict[str, TradeProfile] = {
     BALANCED.name: BALANCED,
     HIGH_WIN.name: HIGH_WIN,
+    PREDATOR.name: PREDATOR,
 }
 
 
@@ -88,12 +112,10 @@ def apply_profile(signal: Signal, profile: TradeProfile) -> Signal | None:
     stop = signal.stop_pct * profile.stop_scale
     target = signal.target_pct * profile.target_scale
     if profile.scalp_r is not None:
-        # Cap target at scalp R so exits cluster early
         target = min(target, stop * profile.scalp_r)
-    # Ensure target is meaningful but still tight for high_win
     target = max(target, stop * 0.45)
-    if profile.name == "high_win":
-        target = min(target, stop * 0.65)
+    if profile.name in {"high_win", "predator"}:
+        target = min(target, stop * (0.65 if profile.name == "high_win" else 0.70))
     if target <= 0 or stop <= 0:
         return None
     return replace(signal, stop_pct=stop, target_pct=target)

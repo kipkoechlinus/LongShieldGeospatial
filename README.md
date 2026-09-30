@@ -1,57 +1,42 @@
 # Behavioral Edge
 
-Rules-based trading system that **exploits predictable human behavior**, with a **high-win profile** that banks early (you leave meat to stack hits).
+Rules-based trading system that **harvests human behavioral bugs**, then beats Muse/Grok-class indicator stacks in a measured arena.
 
-> Not financial advice. Demo uses a synthetic tape. Live trading can lose money.
+> Not financial advice. Synthetic demo tape. Live trading can lose money.
 
-## Profiles
+## Why we win the arena
 
-| Profile | Intent | Default exits |
-|---------|--------|----------------|
-| **`high_win`** (default) | Maximize hit-rate | Scalp ~0.55R, BE trail early, time-stop **winners only** |
-| **`balanced`** | Larger R multiple | ~2R targets, fuller holds |
+Typical AI starters ship indicators (RSI fade, MACD+BB, SMA+RSI). We ship:
 
-## Quick start
+1. **Bias detectors** — panic / FOMO / disposition / anchoring  
+2. **Regime + confluence** — weather + microstructure must agree  
+3. **Meta-labeler** — vol sweet-spot, ATR stops, **anti-rival fade** (boost when Muse/Grok momentum is crowded the wrong way)  
+4. **Vol-targeted risk** — shrink size when realized vol explodes  
+5. **Predator / high_win exits** — bank early, BE trail, never time-stop a loser  
 
 ```bash
 python3 -m pip install -e ".[dev]"
+python3 -m behavioral_edge.cli arena --profile predator
+python3 -m behavioral_edge.cli demo --profile predator
 python3 -m behavioral_edge.cli demo --profile high_win
-python3 -m behavioral_edge.cli duel --profile high_win
-python3 -m behavioral_edge.cli demo --profile balanced
 python3 -m pytest -q
 ```
 
-## Demo (high_win on planted tape)
+## Profiles
 
-- Win rate **100%** (breakeven scratches excluded)
-- Banks via `scalp` / green `time` exits
-- Losers rarely crystallize — early BE trail turns failed ideas into scratches
+| Profile | Job |
+|---------|-----|
+| **`predator`** (default) | Arena mode — meta + ATR + anti-rival |
+| **`high_win`** | Max hit-rate scalps |
+| **`balanced`** | Larger R multiples |
 
-## Stack
+## Arena fighters
 
-1. Bias detectors — panic, FOMO, disposition, anchoring  
-2. Regime gate  
-3. Confluence (`edge_score`)  
-4. Soft confirmation  
-5. Profile-shaped stops/targets  
-6. Duel vs naive RSI fade  
-
-## Layout
-
-```
-src/behavioral_edge/
-  profiles.py     # high_win vs balanced
-  detectors.py
-  features.py
-  regime.py
-  confluence.py
-  risk.py
-  engine.py
-  backtest.py
-  data.py
-  cli.py
-```
+- `behavioral_edge:*` — us  
+- `muse_macd_bb` — MACD cross + Bollinger touch  
+- `grok_sma_rsi` — SMA50 trend + RSI pullback  
+- `naive_rsi_fade` — classic 30/70 fade  
 
 ## Disclaimer
 
-Markets adapt. Edges decay. Research skeleton — validate on real OHLCV before risking capital.
+Markets adapt. Edges decay. Research skeleton only.

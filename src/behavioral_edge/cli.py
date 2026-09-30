@@ -1,14 +1,15 @@
-"""CLI: scan, demo, and head-to-head duel vs naive LLM-style baseline."""
+"""CLI: scan, demo, duel, and Muse/Grok arena."""
 
 from __future__ import annotations
 
 import argparse
 import json
 
+from behavioral_edge.arena import run_arena
 from behavioral_edge.backtest import head_to_head, run_backtest
 from behavioral_edge.data import make_behavioral_tape
 from behavioral_edge.engine import BehavioralEdgeEngine
-from behavioral_edge.profiles import HIGH_WIN, PROFILES
+from behavioral_edge.profiles import HIGH_WIN, PREDATOR, PROFILES
 from behavioral_edge.risk import RiskConfig
 
 
@@ -20,31 +21,37 @@ def main(argv: list[str] | None = None) -> int:
     sub = parser.add_subparsers(dest="cmd", required=True)
 
     demo = sub.add_parser("demo", help="Run synthetic-tape demo + backtest")
-    demo.add_argument("--bars", type=int, default=180)
+    demo.add_argument("--bars", type=int, default=220)
     demo.add_argument("--equity", type=float, default=100_000)
     demo.add_argument(
         "--profile",
         choices=sorted(PROFILES),
-        default="high_win",
-        help="high_win banks early for higher hit-rate; balanced hunts larger R",
+        default="predator",
+        help="predator=arena mode; high_win=hit-rate; balanced=larger R",
     )
     demo.add_argument("--json", action="store_true")
 
     scan = sub.add_parser("scan", help="List signals on the synthetic demo tape")
-    scan.add_argument("--bars", type=int, default=180)
-    scan.add_argument("--profile", choices=sorted(PROFILES), default="high_win")
+    scan.add_argument("--bars", type=int, default=220)
+    scan.add_argument("--profile", choices=sorted(PROFILES), default="predator")
 
-    duel = sub.add_parser(
-        "duel",
-        help="Head-to-head: behavioral edge vs naive RSI fade",
-    )
-    duel.add_argument("--bars", type=int, default=180)
+    duel = sub.add_parser("duel", help="vs naive RSI fade")
+    duel.add_argument("--bars", type=int, default=220)
     duel.add_argument("--equity", type=float, default=100_000)
-    duel.add_argument("--profile", choices=sorted(PROFILES), default="high_win")
+    duel.add_argument("--profile", choices=sorted(PROFILES), default="predator")
     duel.add_argument("--json", action="store_true")
 
+    arena = sub.add_parser(
+        "arena",
+        help="Rank us vs Muse (MACD+BB), Grok (SMA+RSI), and classic RSI",
+    )
+    arena.add_argument("--bars", type=int, default=220)
+    arena.add_argument("--equity", type=float, default=100_000)
+    arena.add_argument("--profile", choices=sorted(PROFILES), default="predator")
+    arena.add_argument("--json", action="store_true")
+
     args = parser.parse_args(argv)
-    profile = PROFILES[getattr(args, "profile", "high_win")]
+    profile = PROFILES[getattr(args, "profile", "predator")]
     risk = RiskConfig(account_equity=getattr(args, "equity", 100_000))
     engine = BehavioralEdgeEngine(risk=risk, profile=profile)
     df = make_behavioral_tape(n=args.bars)
@@ -91,9 +98,14 @@ def main(argv: list[str] | None = None) -> int:
             print("=" * 56)
             if profile.name == HIGH_WIN.name:
                 print("Mode: HIGH WIN — bank early, leave meat, stack hits")
+            if profile.name == PREDATOR.name:
+                print("Mode: PREDATOR — meta-label + ATR + anti-rival fade")
             print(f"Signals fired : {payload['signals']}")
             print(f"Trades taken  : {payload['trades']}")
-            print(f"Win rate      : {payload['win_rate']:.1%}  (excl. {payload.get('scratches', 0)} scratches)")
+            print(
+                f"Win rate      : {payload['win_rate']:.1%}  "
+                f"(excl. {payload.get('scratches', 0)} scratches)"
+            )
             print(f"Expectancy    : ${payload['expectancy']:,.2f}")
             print(f"Profit factor : {payload['profit_factor']}")
             print(f"Max drawdown  : {payload['max_drawdown']:.2%}")
@@ -137,13 +149,35 @@ def main(argv: list[str] | None = None) -> int:
                 f"{report['composite_scores']['naive_rsi_fade']:>14}"
             )
             print(f"Winner: {report['winner']}  (PnL delta ${report['pnl_edge']:,.2f})")
-            if report["attribution"]:
-                print("\nOur edge attribution by bias:")
-                for kind, stats in report["attribution"].items():
-                    print(
-                        f"  {kind:28} trades={int(stats['trades'])}  "
-                        f"pnl=${stats['pnl']:,.2f}  wr={stats['win_rate']:.0%}"
-                    )
+        return 0
+
+    if args.cmd == "arena":
+        report = run_arena(df, equity=args.equity, profile=profile)
+        if args.json:
+            print(json.dumps(report, indent=2))
+        else:
+            print(f"ARENA — us vs Muse / Grok / classic RSI  (profile={report['profile']})")
+            print("=" * 72)
+            print(
+                f"{'rank':<5} {'fighter':<28} {'WR':>7} {'PF':>8} "
+                f"{'DD':>8} {'PnL':>10} {'comp':>8}"
+            )
+            for i, row in enumerate(report["ranking"], 1):
+                mark = " ←" if i == 1 else ""
+                print(
+                    f"{i:<5} {row['label']:<28} {row['win_rate']:>7.1%} "
+                    f"{str(row['profit_factor']):>8} {row['max_drawdown']:>8.2%} "
+                    f"${row['total_pnl']:>9,.0f} {row['composite']:>8}{mark}"
+                )
+            print("-" * 72)
+            print(
+                f"Winner: {report['winner']}  | our rank #{report['our_rank']}  "
+                f"| margin vs #2: {report['margin_vs_second']}"
+            )
+            if report["we_win"]:
+                print("Status: BEHAVIORAL EDGE TAKES THE ARENA.")
+            else:
+                print("Status: rivals ahead — tune and re-run.")
         return 0
 
     return 1
