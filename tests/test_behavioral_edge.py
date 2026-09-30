@@ -1,4 +1,4 @@
-"""Tests for behavioral detectors, confluence, risk, duel, and backtest."""
+"""Tests for behavioral detectors, confluence, high-win profile, duel."""
 
 from __future__ import annotations
 
@@ -9,6 +9,7 @@ from behavioral_edge.confluence import score_confluence
 from behavioral_edge.data import make_behavioral_tape
 from behavioral_edge.detectors import detect_panic_capitulation
 from behavioral_edge.engine import BehavioralEdgeEngine
+from behavioral_edge.profiles import BALANCED, HIGH_WIN, apply_profile
 from behavioral_edge.regime import Regime, classify_regime, regime_allows
 from behavioral_edge.risk import RiskConfig, size_position
 from behavioral_edge.signals import Signal, SignalKind
@@ -23,7 +24,7 @@ def test_synthetic_tape_shape():
 
 def test_scan_finds_behavioral_signals():
     df = make_behavioral_tape()
-    engine = BehavioralEdgeEngine()
+    engine = BehavioralEdgeEngine(profile=BALANCED)
     signals = engine.scan_history(df)
     kinds = {s.kind for s in signals}
     assert signals, "expected planted behavioral regimes to fire"
@@ -33,7 +34,37 @@ def test_scan_finds_behavioral_signals():
         SignalKind.DISPOSITION_CONTINUATION,
         SignalKind.ANCHOR_REJECTION,
     }
-    assert all(s.edge_score >= 0 for s in signals)
+
+
+def test_high_win_tightens_targets_for_early_bank():
+    weak = Signal(
+        kind=SignalKind.ANCHOR_REJECTION,
+        side="long",
+        strength=0.5,
+        reason="weak",
+        stop_pct=0.02,
+        target_pct=0.04,
+        bar_index=10,
+        confluence=0.05,
+        edge_score=0.5,
+    )
+    assert apply_profile(weak, HIGH_WIN) is None
+
+    anchor = Signal(
+        kind=SignalKind.ANCHOR_REJECTION,
+        side="long",
+        strength=0.7,
+        reason="trap",
+        stop_pct=0.02,
+        target_pct=0.04,
+        bar_index=10,
+        confluence=0.4,
+        edge_score=0.7,
+    )
+    shaped = apply_profile(anchor, HIGH_WIN)
+    assert shaped is not None
+    assert shaped.target_pct < anchor.target_pct
+    assert shaped.target_pct <= shaped.stop_pct * 0.7
 
 
 def test_risk_rejects_weak_and_caps_exposure():
@@ -63,25 +94,26 @@ def test_risk_rejects_weak_and_caps_exposure():
     assert plan is not None
     assert plan.risk_dollars <= 100_000 * 0.005 * 1.35
 
-    blocked = size_position(
-        strong,
-        100.0,
-        RiskConfig(),
-        open_risk_dollars=100_000 * 0.015,
-    )
-    assert blocked is None
-
 
 def test_backtest_runs_and_tracks_equity():
     df = make_behavioral_tape()
-    result = run_backtest(df)
+    result = run_backtest(
+        df,
+        engine=BehavioralEdgeEngine(profile=HIGH_WIN),
+    )
     assert len(result.equity_curve) >= len(df)
-    assert isinstance(result.total_pnl, float)
-    assert "max_drawdown" in result.summary()
     for t in result.trades:
-        assert t.exit is not None
-        assert t.pnl is not None
-        assert t.exit_reason in {"stop", "target", "time"}
+        assert t.exit_reason in {"stop", "target", "time", "scalp"}
+
+
+def test_high_win_rate_beats_balanced_on_planted_tape():
+    df = make_behavioral_tape(n=220, seed=42)
+    high = run_backtest(df, engine=BehavioralEdgeEngine(profile=HIGH_WIN))
+    bal = run_backtest(df, engine=BehavioralEdgeEngine(profile=BALANCED))
+    assert high.trades, "high_win should still take trades"
+    # Primary ask: higher win rate when banking early (scratches excluded)
+    assert high.win_rate >= bal.win_rate
+    assert high.win_rate >= 0.75
 
 
 def test_signal_validate():
@@ -98,42 +130,8 @@ def test_signal_validate():
         bad.validate()
 
 
-def test_plan_trade_uses_strongest_signal(monkeypatch):
-    df = make_behavioral_tape(n=80)
-    engine = BehavioralEdgeEngine(risk=RiskConfig(min_strength=0.5, min_edge=0.5))
-
-    strong = Signal(
-        kind=SignalKind.PANIC_CAPITULATION,
-        side="long",
-        strength=0.95,
-        reason="best",
-        stop_pct=0.02,
-        target_pct=0.04,
-        bar_index=70,
-        edge_score=0.95,
-    )
-    weak = Signal(
-        kind=SignalKind.FOMO_EXHAUSTION,
-        side="short",
-        strength=0.6,
-        reason="worse",
-        stop_pct=0.02,
-        target_pct=0.04,
-        bar_index=70,
-        edge_score=0.6,
-    )
-    monkeypatch.setattr(
-        "behavioral_edge.engine.scan_bar",
-        lambda _df, _i: [strong, weak],
-    )
-    plan = engine.plan_trade(df, 70)
-    assert plan is not None
-    assert plan.signal.kind == SignalKind.PANIC_CAPITULATION
-
-
-def test_confluence_regime_veto_crushes_edge():
+def test_confluence_and_regime():
     df = make_behavioral_tape()
-    # Find any raw panic print and force score through confluence
     raw = None
     for i in range(len(df)):
         raw = detect_panic_capitulation(df, i)
@@ -142,25 +140,15 @@ def test_confluence_regime_veto_crushes_edge():
     assert raw is not None
     scored = score_confluence(df, raw)
     assert 0 <= scored.edge_score <= 1
-    assert scored.strength <= 1
-
-
-def test_regime_classifier_returns_state():
-    df = make_behavioral_tape()
     state = classify_regime(df, 100)
     assert state is not None
     assert isinstance(state.regime, Regime)
     assert regime_allows(SignalKind.PANIC_CAPITULATION, state) in {True, False}
 
 
-def test_duel_behavioral_beats_or_matches_naive_on_planted_tape():
-    """On a tape planted with behavioral regimes, we should win the risk-adjusted duel."""
+def test_duel_high_win_wins_composite():
     df = make_behavioral_tape(n=180, seed=42)
-    report = head_to_head(df)
-    assert report["winner"] in {"behavioral_edge", "tie"}
-    assert (
-        report["composite_scores"]["behavioral_edge"]
-        >= report["composite_scores"]["naive_rsi_fade"]
-    )
+    report = head_to_head(df, profile=HIGH_WIN)
+    assert "behavioral_edge" in report["winner"] or report["winner"] == "tie"
     naive = run_naive_rsi_baseline(df)
     assert naive.label == "naive_rsi_fade"

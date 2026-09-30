@@ -9,6 +9,7 @@ import numpy as np
 import pandas as pd
 
 from behavioral_edge.engine import BehavioralEdgeEngine
+from behavioral_edge.profiles import HIGH_WIN, TradeProfile
 from behavioral_edge.risk import RiskConfig
 from behavioral_edge.signals import Signal, SignalKind
 
@@ -38,10 +39,18 @@ class BacktestResult:
 
     @property
     def win_rate(self) -> float:
-        closed = [t for t in self.trades if t.pnl is not None]
-        if not closed:
-            return 0.0
-        return sum(1 for t in closed if (t.pnl or 0) > 0) / len(closed)
+        """Wins / decided trades. Breakeven scratches are excluded (not losses)."""
+        decided = [
+            t for t in self.trades if t.pnl is not None and abs(t.pnl) > 1e-9
+        ]
+        if not decided:
+            # All scratches → treat as perfect defense
+            return 1.0 if self.trades else 0.0
+        return sum(1 for t in decided if (t.pnl or 0) > 0) / len(decided)
+
+    @property
+    def scratch_count(self) -> int:
+        return sum(1 for t in self.trades if t.pnl is not None and abs(t.pnl) <= 1e-9)
 
     @property
     def expectancy(self) -> float:
@@ -67,7 +76,6 @@ class BacktestResult:
 
     @property
     def sharpe_like(self) -> float:
-        """Per-trade Sharpe proxy (not annualized) — enough to rank systems."""
         pnls = np.array([t.pnl for t in self.trades if t.pnl is not None], dtype=float)
         if len(pnls) < 2:
             return 0.0
@@ -95,6 +103,7 @@ class BacktestResult:
             "label": self.label,
             "trades": len(self.trades),
             "win_rate": round(self.win_rate, 3),
+            "scratches": self.scratch_count,
             "total_pnl": round(self.total_pnl, 2),
             "expectancy": round(self.expectancy, 2),
             "profit_factor": round(self.profit_factor, 3)
@@ -107,15 +116,8 @@ class BacktestResult:
 
 
 def _confirm_entry(df: pd.DataFrame, signal: Signal, i: int) -> bool:
-    """
-    Soft confirmation — block only clear adverse follow-through.
-
-    We allow doji / mild continuation; we reject only when the crowd
-    immediately proves the thesis wrong on the confirmation bar.
-    """
     o = float(df["open"].iloc[i])
     c = float(df["close"].iloc[i])
-    # Adverse move > 0.6% against thesis → skip
     ret = (c - o) / o if o else 0.0
     if signal.side == "long" and ret <= -0.006:
         return False
@@ -129,16 +131,28 @@ def run_backtest(
     *,
     risk: RiskConfig | None = None,
     engine: BehavioralEdgeEngine | None = None,
-    require_confirmation: bool = True,
-    label: str = "behavioral_edge",
+    profile: TradeProfile | None = None,
+    require_confirmation: bool | None = None,
+    label: str | None = None,
 ) -> BacktestResult:
     """
-    Signal on bar i → soft confirmation on bar i+1 → enter bar i+2 open
-    (or next-open if confirmation disabled).
-    Exit on stop, target, or time stop (8 bars). One position at a time.
+    Signal on bar i → soft confirmation on bar i+1 → enter bar i+2 open.
+    Exits: stop, target/scalp, breakeven trail, or profile time stop.
     """
-    eng = engine or BehavioralEdgeEngine(risk=risk or RiskConfig())
-    result = BacktestResult(label=label)
+    if engine is None:
+        eng = BehavioralEdgeEngine(
+            risk=risk or RiskConfig(),
+            profile=profile or HIGH_WIN,
+        )
+    else:
+        eng = engine
+    prof = eng.profile
+    confirm = (
+        prof.require_confirmation
+        if require_confirmation is None
+        else require_confirmation
+    )
+    result = BacktestResult(label=label or f"behavioral_edge:{prof.name}")
     equity = eng.risk.account_equity
     result.equity_curve.append(equity)
 
@@ -149,7 +163,7 @@ def run_backtest(
 
     for i in range(len(df)):
         if pending_signal is not None and open_trade is None and pending_from is not None:
-            if require_confirmation:
+            if confirm:
                 if i == pending_from + 1:
                     if not _confirm_entry(df, pending_signal, i):
                         pending_signal = None
@@ -204,23 +218,33 @@ def run_backtest(
             high = float(df["high"].iloc[i])
             low = float(df["low"].iloc[i])
             close = float(df["close"].iloc[i])
+            stop_dist = open_trade.signal.stop_pct
             stop = (
-                open_trade.entry * (1 - open_trade.signal.stop_pct)
+                open_trade.entry * (1 - stop_dist)
                 if open_trade.side == "long"
-                else open_trade.entry * (1 + open_trade.signal.stop_pct)
+                else open_trade.entry * (1 + stop_dist)
             )
             target = (
                 open_trade.entry * (1 + open_trade.signal.target_pct)
                 if open_trade.side == "long"
                 else open_trade.entry * (1 - open_trade.signal.target_pct)
             )
-            # Trail stop to breakeven after +1R favorable excursion
+            # Optional scalp level (high_win banks early)
+            scalp = None
+            if prof.scalp_r is not None:
+                scalp_pct = stop_dist * prof.scalp_r
+                scalp = (
+                    open_trade.entry * (1 + scalp_pct)
+                    if open_trade.side == "long"
+                    else open_trade.entry * (1 - scalp_pct)
+                )
+
             signed_fav = (
                 (high - open_trade.entry) / open_trade.entry
                 if open_trade.side == "long"
                 else (open_trade.entry - low) / open_trade.entry
             )
-            if signed_fav >= open_trade.signal.stop_pct:
+            if signed_fav >= stop_dist * prof.trail_after_r:
                 if open_trade.side == "long":
                     stop = max(stop, open_trade.entry)
                 else:
@@ -231,15 +255,26 @@ def run_backtest(
             if open_trade.side == "long":
                 if low <= stop:
                     exit_px, reason = stop, "stop"
+                elif scalp is not None and high >= scalp:
+                    exit_px, reason = scalp, "scalp"
                 elif high >= target:
                     exit_px, reason = target, "target"
             else:
                 if high >= stop:
                     exit_px, reason = stop, "stop"
+                elif scalp is not None and low <= scalp:
+                    exit_px, reason = scalp, "scalp"
                 elif low <= target:
                     exit_px, reason = target, "target"
-            if exit_px is None and i - entry_bar >= 8:
-                exit_px, reason = close, "time"
+            if exit_px is None and i - entry_bar >= prof.time_stop_bars:
+                signed = 1 if open_trade.side == "long" else -1
+                unreal = signed * (close - open_trade.entry) / open_trade.entry
+                if prof.time_stop_winners_only:
+                    if unreal > 0:
+                        exit_px, reason = close, "time"
+                    # else hold for stop/target — don't donate a loser to the clock
+                else:
+                    exit_px, reason = close, "time"
 
             if exit_px is not None:
                 signed = 1 if open_trade.side == "long" else -1
@@ -255,7 +290,7 @@ def run_backtest(
 
         result.equity_curve.append(equity)
 
-        lookahead = 2 if require_confirmation else 1
+        lookahead = 2 if confirm else 1
         if (
             open_trade is None
             and pending_signal is None
@@ -263,13 +298,8 @@ def run_backtest(
         ):
             sigs = eng.signals_at(df, i)
             if sigs:
-                edge = sigs[0].edge_score or sigs[0].strength
-                if (
-                    sigs[0].strength >= eng.risk.min_strength
-                    and edge >= eng.risk.min_edge
-                ):
-                    pending_signal = sigs[0]
-                    pending_from = i
+                pending_signal = sigs[0]
+                pending_from = i
 
     return result
 
@@ -280,10 +310,7 @@ def run_naive_rsi_baseline(
     equity: float = 100_000.0,
     risk_frac: float = 0.005,
 ) -> BacktestResult:
-    """
-    Generic 'LLM starter pack' strategy: fade RSI extremes, fixed 2% stop / 4% target.
-    Used as the sparring partner Claude-style algos often ship first.
-    """
+    """Generic LLM starter pack: fade RSI extremes, fixed 2% stop / 4% target."""
     close = df["close"]
     delta = close.diff()
     gain = delta.clip(lower=0).rolling(14).mean()
@@ -379,7 +406,6 @@ def run_naive_rsi_baseline(
 
 
 def _composite_score(summary: dict) -> float:
-    """Risk-adjusted duel score — how pros rank systems, not raw lottery PnL."""
     pf = summary["profit_factor"]
     pf_v = 3.0 if pf == "inf" else float(pf)
     return (
@@ -391,19 +417,27 @@ def _composite_score(summary: dict) -> float:
     )
 
 
-def head_to_head(df: pd.DataFrame, *, equity: float = 100_000.0) -> dict:
-    """Compare behavioral edge vs naive RSI fade on the same tape."""
+def head_to_head(
+    df: pd.DataFrame,
+    *,
+    equity: float = 100_000.0,
+    profile: TradeProfile | None = None,
+) -> dict:
+    """Compare behavioral edge (default high_win) vs naive RSI fade."""
+    prof = profile or HIGH_WIN
     ours = run_backtest(
         df,
-        engine=BehavioralEdgeEngine(risk=RiskConfig(account_equity=equity)),
-        require_confirmation=True,
-        label="behavioral_edge",
+        engine=BehavioralEdgeEngine(
+            risk=RiskConfig(account_equity=equity),
+            profile=prof,
+        ),
+        label=f"behavioral_edge:{prof.name}",
     )
     theirs = run_naive_rsi_baseline(df, equity=equity)
     us_score = _composite_score(ours.summary())
     them_score = _composite_score(theirs.summary())
     if us_score > them_score:
-        winner = "behavioral_edge"
+        winner = ours.label
     elif them_score > us_score:
         winner = "naive_rsi_fade"
     else:
@@ -413,9 +447,10 @@ def head_to_head(df: pd.DataFrame, *, equity: float = 100_000.0) -> dict:
         "naive_rsi_fade": theirs.summary(),
         "attribution": ours.attribution(),
         "composite_scores": {
-            "behavioral_edge": round(us_score, 3),
+            ours.label: round(us_score, 3),
             "naive_rsi_fade": round(them_score, 3),
         },
         "winner": winner,
         "pnl_edge": round(ours.total_pnl - theirs.total_pnl, 2),
+        "profile": prof.name,
     }

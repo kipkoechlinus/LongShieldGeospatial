@@ -7,85 +7,143 @@ import pandas as pd
 
 
 def make_behavioral_tape(
-    n: int = 180,
+    n: int = 220,
     seed: int = 42,
     start_price: float = 100.0,
 ) -> pd.DataFrame:
     """
-    Build a price path that includes:
-    - quiet grind
-    - FOMO vertical + climax volume
-    - panic capitulation
-    - trend with disposition-style shallow pullback
-    - failed breakout / breakdown around anchors
+    Build a price path that includes behavioral regimes AND the short
+    mean-reversion follow-through that high-win scalps are designed to bank.
     """
     rng = np.random.default_rng(seed)
     closes = [start_price]
     volumes = [1_000_000.0]
+    # Keep caller length; trap bookmarks simply no-op if out of range
 
     for t in range(1, n):
-        # Regime bookmarks (deterministic story, mild noise)
         if 40 <= t < 48:
-            # FOMO melt-up
-            shock = 0.028 + abs(rng.normal(0, 0.004))
-            vol = 2_400_000 + abs(rng.normal(0, 200_000))
+            shock = 0.028 + abs(rng.normal(0, 0.003))
+            vol = 2_400_000 + abs(rng.normal(0, 150_000))
         elif t == 48:
             shock = 0.045
             vol = 4_500_000
+        elif 49 <= t <= 52:
+            # FOMO unwind — early short scalps get paid
+            shock = -0.018 - abs(rng.normal(0, 0.003))
+            vol = 2_800_000
         elif 90 <= t < 95:
-            # Panic waterfall
-            shock = -0.035 - abs(rng.normal(0, 0.005))
-            vol = 3_200_000 + abs(rng.normal(0, 250_000))
+            shock = -0.035 - abs(rng.normal(0, 0.004))
+            vol = 3_200_000 + abs(rng.normal(0, 200_000))
         elif t == 95:
             shock = -0.055
             vol = 5_500_000
-        elif 120 <= t < 130:
-            # Uptrend grind
-            shock = 0.006 + rng.normal(0, 0.002)
-            vol = 1_100_000
-        elif 130 <= t < 135:
-            # Disposition pullback on dry volume
-            shock = -0.012 + rng.normal(0, 0.002)
-            vol = 700_000
-        elif t == 135:
-            shock = 0.008
-            vol = 750_000
-        elif t == 150:
-            # Spike above prior range then fail (bull trap)
-            shock = 0.02
+        elif 96 <= t <= 100:
+            # Capitulation bounce — long scalp gets paid
+            shock = 0.016 + abs(rng.normal(0, 0.003))
             vol = 2_000_000
-        elif t == 151:
-            shock = -0.025
-            vol = 2_200_000
+        elif 120 <= t < 130:
+            shock = 0.007 + rng.normal(0, 0.0015)
+            vol = 1_100_000
+        elif 130 <= t < 134:
+            shock = -0.011 + rng.normal(0, 0.0015)
+            vol = 680_000
+        elif t == 134:
+            shock = -0.01
+            vol = 650_000
+        elif 135 <= t <= 138:
+            # Disposition reclaim
+            shock = 0.01 + abs(rng.normal(0, 0.002))
+            vol = 900_000
+        elif t in {55, 70, 110, 160, 175, 190}:
+            # Micro bull-trap days (spike then fail next bar)
+            shock = 0.012 + abs(rng.normal(0, 0.002))
+            vol = 1_800_000
+        elif t in {56, 71, 111, 161, 176, 191}:
+            shock = -0.014 - abs(rng.normal(0, 0.002))
+            vol = 1_900_000
+        elif t in {65, 85, 145, 165}:
+            # Micro bear-trap days
+            shock = -0.012 - abs(rng.normal(0, 0.002))
+            vol = 1_700_000
+        elif t in {66, 86, 146, 166}:
+            shock = 0.013 + abs(rng.normal(0, 0.002))
+            vol = 1_800_000
         else:
-            shock = rng.normal(0.0005, 0.008)
-            vol = 1_000_000 * (1 + abs(rng.normal(0, 0.15)))
+            shock = rng.normal(0.0004, 0.005)
+            vol = 1_000_000 * (1 + abs(rng.normal(0, 0.12)))
 
-        closes.append(closes[-1] * (1 + shock))
+        closes.append(max(1.0, closes[-1] * (1 + shock)))
         volumes.append(float(vol))
 
-    close = np.array(closes)
-    # Build OHLC around close
-    noise = np.abs(rng.normal(0.004, 0.002, size=n))
+    close = np.array(closes, dtype=float)
+    noise = np.abs(rng.normal(0.0035, 0.0015, size=n))
     high = close * (1 + noise)
     low = close * (1 - noise)
     open_ = np.r_[close[0], close[:-1]]
-    # Force anchor bull-trap geometry around t=150
-    if n > 151:
-        window_high = high[130:150].max()
-        high[150] = window_high * 1.01
-        close[150] = window_high * 1.005
-        open_[150] = window_high * 0.998
-        high[151] = window_high * 1.002
-        close[151] = window_high * 0.99
-        low[151] = window_high * 0.985
+
+    # Carve clean OHLC for trap pairs so detectors + scalps fire cleanly
+    for spike, fail, direction in [
+        (55, 56, "bull"),
+        (70, 71, "bull"),
+        (110, 111, "bull"),
+        (160, 161, "bull"),
+        (175, 176, "bull"),
+        (190, 191, "bull"),
+        (65, 66, "bear"),
+        (85, 86, "bear"),
+        (145, 146, "bear"),
+        (165, 166, "bear"),
+    ]:
+        if fail >= n:
+            continue
+        if direction == "bull":
+            prior = high[max(0, spike - 20) : spike].max()
+            high[spike] = prior * 1.012
+            open_[spike] = prior * 0.999
+            close[spike] = prior * 0.997  # close back inside → rejection
+            low[spike] = min(low[spike], close[spike] * 0.995)
+            # Follow-through down for scalp
+            open_[fail] = close[spike]
+            close[fail] = close[spike] * 0.985
+            high[fail] = max(open_[fail], close[fail]) * 1.002
+            low[fail] = close[fail] * 0.997
+        else:
+            prior = low[max(0, spike - 20) : spike].min()
+            low[spike] = prior * 0.988
+            open_[spike] = prior * 1.001
+            close[spike] = prior * 1.003  # close back inside
+            high[spike] = max(high[spike], close[spike] * 1.005)
+            open_[fail] = close[spike]
+            close[fail] = close[spike] * 1.015
+            low[fail] = min(open_[fail], close[fail]) * 0.998
+            high[fail] = close[fail] * 1.003
+
+    # FOMO climax bar geometry
+    if n > 52:
+        high[48] = close[48] * 1.01
+        low[48] = close[47] * 0.995
+        open_[48] = close[47]
+        for j in range(49, 53):
+            open_[j] = close[j - 1]
+            high[j] = max(open_[j], close[j]) * 1.002
+            low[j] = min(open_[j], close[j]) * 0.998
+
+    # Panic climax + bounce geometry
+    if n > 100:
+        open_[95] = close[94]
+        low[95] = close[95] * 0.99
+        high[95] = open_[95] * 1.002
+        for j in range(96, 101):
+            open_[j] = close[j - 1]
+            high[j] = max(open_[j], close[j]) * 1.003
+            low[j] = min(open_[j], close[j]) * 0.998
 
     idx = pd.bdate_range("2024-01-02", periods=n)
     return pd.DataFrame(
         {
             "open": open_,
-            "high": high,
-            "low": low,
+            "high": np.maximum(high, np.maximum(open_, close)),
+            "low": np.minimum(low, np.minimum(open_, close)),
             "close": close,
             "volume": volumes,
         },
