@@ -1,0 +1,128 @@
+{
+  "months": 4,
+  "fetch_start": "2026-03-01",
+  "score_start": "2026-05-30",
+  "end": "2026-09-30",
+  "symbols": {
+    "SPY": {
+      "bars_total": 147,
+      "bars_scored": 84,
+      "first": "2026-03-02",
+      "last": "2026-09-29",
+      "score_first": "2026-06-01",
+      "path": "data/ohlcv_4mo/SPY.csv"
+    },
+    "QQQ": {
+      "bars_total": 147,
+      "bars_scored": 84,
+      "first": "2026-03-02",
+      "last": "2026-09-29",
+      "score_first": "2026-06-01",
+      "path": "data/ohlcv_4mo/QQQ.csv"
+    },
+    "IWM": {
+      "bars_total": 147,
+      "bars_scored": 84,
+      "first": "2026-03-02",
+      "last": "2026-09-29",
+      "score_first": "2026-06-01",
+      "path": "data/ohlcv_4mo/IWM.csv"
+    },
+    "AAPL": {
+      "bars_total": 147,
+      "bars_scored": 84,
+      "first": "2026-03-02",
+      "last": "2026-09-29",
+      "score_first": "2026-06-01",
+      "path": "data/ohlcv_4mo/AAPL.csv"
+    },
+    "NVDA": {
+      "bars_total": 147,
+      "bars_scored": 84,
+      "first": "2026-03-02",
+      "last": "2026-09-29",
+      "score_first": "2026-06-01",
+      "path": "data/ohlcv_4mo/NVDA.csv"
+    },
+    "BTC-USD": {
+      "bars_total": 213,
+      "bars_scored": 123,
+      "first": "2026-03-01",
+      "last": "2026-09-30",
+      "score_first": "2026-05-30",
+      "path": "data/ohlcv_4mo/BTC-USD.csv"
+    },
+    "ETH-USD": {
+      "bars_total": 213,
+      "bars_scored": 123,
+      "first": "2026-03-01",
+      "last": "2026-09-30",
+      "score_first": "2026-05-30",
+      "path": "data/ohlcv_4mo/ETH-USD.csv"
+    },
+    "LTC-USD": {
+      "bars_total": 213,
+      "bars_scored": 123,
+      "first": "2026-03-01",
+      "last": "2026-09-30",
+      "score_first": "2026-05-30",
+      "path": "data/ohlcv_4mo/LTC-USD.csv"
+    },
+    "ATOM-USD": {
+      "bars_total": 213,
+      "bars_scored": 123,
+      "first": "2026-03-01",
+      "last": "2026-09-30",
+      "score_first": "2026-05-30",
+      "path": "data/ohlcv_4mo/ATOM-USD.csv"
+    },
+    "DOT-USD": {
+      "bars_total": 213,
+      "bars_scored": 123,
+      "first": "2026-03-01",
+      "last": "2026-09-30",
+      "score_first": "2026-05-30",
+      "path": "data/ohlcv_4mo/DOT-USD.csv"
+    },
+    "AVAX-USD": {
+      "bars_total": 213,
+      "bars_scored": 123,
+      "first": "2026-03-01",
+      "last": "2026-09-30",
+      "score_first": "2026-05-30",
+      "path": "data/ohlcv_4mo/AVAX-USD.csv"
+    },
+    "SOL-USD": {
+      "bars_total": 213,
+      "bars_scored": 123,
+      "first": "2026-03-01",
+      "last": "2026-09-30",
+      "score_first": "2026-05-30",
+      "path": "data/ohlcv_4mo/SOL-USD.csv"
+    },
+    "XRP-USD": {
+      "bars_total": 213,
+      "bars_scored": 123,
+      "first": "2026-03-01",
+      "last": "2026-09-30",
+      "score_first": "2026-05-30",
+      "path": "data/ohlcv_4mo/XRP-USD.csv"
+    },
+    "BNB-USD": {
+      "bars_total": 213,
+      "bars_scored": 123,
+      "first": "2026-03-01",
+      "last": "2026-09-30",
+      "score_first": "2026-05-30",
+      "path": "data/ohlcv_4mo/BNB-USD.csv"
+    },
+    "DOGE-USD": {
+      "bars_total": 213,
+      "bars_scored": 123,
+      "first": "2026-03-01",
+      "last": "2026-09-30",
+      "score_first": "2026-05-30",
+      "path": "data/ohlcv_4mo/DOGE-USD.csv"
+    }
+  }
+}
