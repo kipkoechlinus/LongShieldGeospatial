@@ -1,0 +1,84 @@
+{
+  "profile": "hustle",
+  "months": 4,
+  "score_start": "2026-05-30",
+  "score_end": "2026-09-30",
+  "fetch_start": "2026-03-01",
+  "equity_per_symbol": 100000,
+  "symbols": [
+    "DOT-USD",
+    "LTC-USD",
+    "ATOM-USD"
+  ],
+  "methodology": {
+    "detectors": "sigma_adaptive",
+    "sigma_window": 20,
+    "fills": "signal \u2192 confirm next bar \u2192 enter following open",
+    "warmup_days": 90,
+    "note": "Panic/FOMO/disposition/anchor gates scale to each name's 20d return \u03c3 so quiet index sessions can still print emotion."
+  },
+  "per_symbol": [
+    {
+      "label": "hustle:DOT-USD",
+      "trades": 2,
+      "win_rate": 1.0,
+      "scratches": 0,
+      "total_pnl": 6862.61,
+      "pnl_per_day": 55.79,
+      "expectancy": 3431.31,
+      "profit_factor": "inf",
+      "max_drawdown": 0.0,
+      "sharpe_like": 2.342,
+      "final_equity": 106862.61,
+      "bars_scored": 123,
+      "symbol": "DOT-USD",
+      "score_start": "2026-05-30",
+      "score_end": "2026-09-30"
+    },
+    {
+      "label": "hustle:LTC-USD",
+      "trades": 5,
+      "win_rate": 0.75,
+      "scratches": 1,
+      "total_pnl": 6735.32,
+      "pnl_per_day": 54.76,
+      "expectancy": 1347.06,
+      "profit_factor": 2.101,
+      "max_drawdown": -0.0569,
+      "sharpe_like": 0.317,
+      "final_equity": 106735.32,
+      "bars_scored": 123,
+      "symbol": "LTC-USD",
+      "score_start": "2026-05-30",
+      "score_end": "2026-09-30"
+    },
+    {
+      "label": "hustle:ATOM-USD",
+      "trades": 2,
+      "win_rate": 1.0,
+      "scratches": 0,
+      "total_pnl": 10803.16,
+      "pnl_per_day": 87.83,
+      "expectancy": 5401.58,
+      "profit_factor": "inf",
+      "max_drawdown": 0.0,
+      "sharpe_like": 86.161,
+      "final_equity": 110803.16,
+      "bars_scored": 123,
+      "symbol": "ATOM-USD",
+      "score_start": "2026-05-30",
+      "score_end": "2026-09-30"
+    }
+  ],
+  "errors": [],
+  "aggregate": {
+    "symbols_ok": 3,
+    "avg_pnl_per_day": 66.13,
+    "sum_total_pnl": 24401.09,
+    "avg_win_rate": 0.917,
+    "clears_100_day_avg": false,
+    "best_symbol": "ATOM-USD",
+    "best_pnl_per_day": 87.83
+  },
+  "disclaimer": "REAL MARKET DATA via yfinance, but still a research backtest: no commissions/slippage, next-open fills, per-symbol independent books. Not live trading PnL. Synthetic sealed receipts are a separate claim."
+}

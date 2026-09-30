@@ -134,11 +134,29 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="run only the most profitable live asset (ATOM-USD)",
     )
+    live.add_argument(
+        "--battle",
+        action="store_true",
+        help="optimal crypto battle roster from subset sweep (DOT/LTC/ATOM)",
+    )
     live.add_argument("--json", action="store_true")
     live.add_argument(
         "--out",
         default="",
         help="optional path to write JSON results",
+    )
+
+    sweep = sub.add_parser(
+        "sweep",
+        help="Brute-force crypto subset sizes; pick battle roster (max avg $/day)",
+    )
+    sweep.add_argument("--months", type=int, default=4)
+    sweep.add_argument("--equity", type=float, default=100_000)
+    sweep.add_argument("--json", action="store_true")
+    sweep.add_argument(
+        "--out",
+        default="receipts/crypto-subset-sweep.json",
+        help="write full sweep JSON here",
     )
 
     fetch = sub.add_parser(
@@ -508,29 +526,75 @@ def main(argv: list[str] | None = None) -> int:
             print(f"Manifest  : {args.out_dir}/manifest.json")
         return 0
 
+    if args.cmd == "sweep":
+        from pathlib import Path
+
+        from behavioral_edge.crypto_sweep import run_crypto_subset_sweep
+
+        report = run_crypto_subset_sweep(months=args.months, equity=args.equity)
+        if args.out:
+            Path(args.out).parent.mkdir(parents=True, exist_ok=True)
+            Path(args.out).write_text(json.dumps(report, indent=2) + "\n")
+        if args.json:
+            print(json.dumps(report, indent=2))
+        else:
+            bw = report["battle_winner"]
+            print("CRYPTO SUBSET SWEEP")
+            print("=" * 72)
+            print(f"Score window : {report['score_start']} → {report['score_end']}")
+            print(f"Candidates   : {len(report['candidates'])}")
+            print(report["objective"])
+            print("-" * 72)
+            if bw:
+                print(
+                    f"BATTLE ROSTER k={bw['k']}  profile={bw['profile']}  "
+                    f"avg $/day=${bw['avg_day']:,.2f}  sum PnL=${bw['sum_pnl']:,.0f}  "
+                    f"WR={bw['avg_wr']:.0%}"
+                )
+                print(f"  symbols    : {', '.join(bw['symbols'])}")
+                print(f"  desk $/day : ${bw['desk_day']:,.2f} (sum across books)")
+            for pname, block in report["profiles"].items():
+                champ = block["global_best_avg_day"]
+                print(
+                    f"Champion[{pname}]: {champ['symbols'][0]}  "
+                    f"${champ['avg_day']:,.2f}/day  PnL ${champ['sum_pnl']:,.0f}"
+                )
+                print(f"{pname} best avg $/day by k:")
+                for r in range(1, min(8, len(report["candidates"])) + 1):
+                    b = block["by_k"][str(r)]["best_avg_day"]
+                    print(
+                        f"  k={r}  ${b['avg_day']:>7.2f}/day  "
+                        f"sum ${b['sum_pnl']:>9,.0f}  {b['symbols']}"
+                    )
+            print(report["disclaimer"])
+            if args.out:
+                print(f"Wrote {args.out}")
+        return 0
+
     if args.cmd == "live":
         from behavioral_edge.live_test import (
+            BATTLE_CRYPTO_UNIVERSE,
             CHAMPION_ASSET,
             CRYPTO_UNIVERSE,
             run_live_window,
         )
         from behavioral_edge.profiles import CRYPTO as CRYPTO_PROFILE
 
-        if args.champion:
+        cli_args = argv if argv is not None else __import__("sys").argv[1:]
+        profile_explicit = any(
+            a == "--profile" or a.startswith("--profile=") for a in cli_args
+        )
+
+        if args.battle:
+            symbols = BATTLE_CRYPTO_UNIVERSE
+            if not profile_explicit:
+                profile = HUSTLE  # sweep winner profile
+        elif args.champion:
             symbols = (CHAMPION_ASSET,)
-            cli_args = argv if argv is not None else __import__("sys").argv[1:]
-            profile_explicit = any(
-                a == "--profile" or a.startswith("--profile=") for a in cli_args
-            )
             if not profile_explicit:
                 profile = CRYPTO_PROFILE
         elif args.crypto:
             symbols = CRYPTO_UNIVERSE
-            # --crypto alone defaults onto the crypto profile; explicit --profile wins
-            cli_args = argv if argv is not None else __import__("sys").argv[1:]
-            profile_explicit = any(
-                a == "--profile" or a.startswith("--profile=") for a in cli_args
-            )
             if not profile_explicit:
                 profile = CRYPTO_PROFILE
         else:

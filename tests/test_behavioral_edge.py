@@ -207,3 +207,27 @@ def test_crypto_profile_rejects_fomo():
     )
     assert apply_profile(fomo, CRYPTO) is None
     assert apply_profile(dip, CRYPTO) is not None
+
+
+def test_battle_crypto_roster_is_sweep_winner():
+    from behavioral_edge.crypto_sweep import BATTLE_CRYPTO_UNIVERSE, BATTLE_CRYPTO_PROFILE
+    from behavioral_edge.live_test import BATTLE_CRYPTO_UNIVERSE as LIVE_BATTLE
+
+    assert BATTLE_CRYPTO_PROFILE == "hustle"
+    assert BATTLE_CRYPTO_UNIVERSE == ("DOT-USD", "LTC-USD", "ATOM-USD")
+    assert LIVE_BATTLE == BATTLE_CRYPTO_UNIVERSE
+
+
+def test_combo_rec_ranks_positive_books():
+    from behavioral_edge.crypto_sweep import _combo_rec
+
+    rec = _combo_rec(
+        [
+            {"symbol": "A", "per_day": 10.0, "pnl": 100.0, "wr": 1.0},
+            {"symbol": "B", "per_day": 20.0, "pnl": 200.0, "wr": 0.5},
+        ]
+    )
+    assert rec["k"] == 2
+    assert rec["avg_day"] == 15.0
+    assert rec["desk_day"] == 30.0
+    assert rec["all_positive"] is True

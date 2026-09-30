@@ -1,0 +1,1820 @@
+{
+  "months": 4,
+  "score_start": "2026-05-30",
+  "score_end": "2026-09-30",
+  "fetch_start": "2026-03-01",
+  "equity_per_symbol": 100000,
+  "candidates": [
+    "BTC-USD",
+    "ETH-USD",
+    "SOL-USD",
+    "XRP-USD",
+    "BNB-USD",
+    "DOGE-USD",
+    "AVAX-USD",
+    "LINK-USD",
+    "ADA-USD",
+    "DOT-USD",
+    "LTC-USD",
+    "ATOM-USD",
+    "NEAR-USD"
+  ],
+  "objective": "Per k: best subset by avg $/day, desk $/day, sum PnL. Battle roster = all-positive, k\u2208[3,5], max avg $/day.",
+  "profiles": {
+    "crypto": {
+      "per_symbol": {
+        "BTC-USD": {
+          "symbol": "BTC-USD",
+          "trades": 4,
+          "wr": 0.667,
+          "pnl": 4901.42,
+          "per_day": 39.85,
+          "bars": 123
+        },
+        "ETH-USD": {
+          "symbol": "ETH-USD",
+          "trades": 5,
+          "wr": 0.75,
+          "pnl": 4314.82,
+          "per_day": 35.08,
+          "bars": 123
+        },
+        "SOL-USD": {
+          "symbol": "SOL-USD",
+          "trades": 2,
+          "wr": 0.0,
+          "pnl": -6076.7,
+          "per_day": -49.4,
+          "bars": 123
+        },
+        "XRP-USD": {
+          "symbol": "XRP-USD",
+          "trades": 3,
+          "wr": 1.0,
+          "pnl": 4752.92,
+          "per_day": 38.64,
+          "bars": 123
+        },
+        "BNB-USD": {
+          "symbol": "BNB-USD",
+          "trades": 5,
+          "wr": 0.6,
+          "pnl": 980.74,
+          "per_day": 7.97,
+          "bars": 123
+        },
+        "DOGE-USD": {
+          "symbol": "DOGE-USD",
+          "trades": 3,
+          "wr": 0.0,
+          "pnl": -11169.87,
+          "per_day": -90.81,
+          "bars": 123
+        },
+        "AVAX-USD": {
+          "symbol": "AVAX-USD",
+          "trades": 3,
+          "wr": 0.667,
+          "pnl": 1488.68,
+          "per_day": 12.1,
+          "bars": 123
+        },
+        "LINK-USD": {
+          "symbol": "LINK-USD",
+          "trades": 3,
+          "wr": 0.0,
+          "pnl": -12006.43,
+          "per_day": -97.61,
+          "bars": 123
+        },
+        "ADA-USD": {
+          "symbol": "ADA-USD",
+          "trades": 5,
+          "wr": 0.25,
+          "pnl": -15393.73,
+          "per_day": -125.15,
+          "bars": 123
+        },
+        "DOT-USD": {
+          "symbol": "DOT-USD",
+          "trades": 1,
+          "wr": 1.0,
+          "pnl": 4896.37,
+          "per_day": 39.81,
+          "bars": 123
+        },
+        "LTC-USD": {
+          "symbol": "LTC-USD",
+          "trades": 5,
+          "wr": 0.75,
+          "pnl": 6735.32,
+          "per_day": 54.76,
+          "bars": 123
+        },
+        "ATOM-USD": {
+          "symbol": "ATOM-USD",
+          "trades": 2,
+          "wr": 1.0,
+          "pnl": 10612.94,
+          "per_day": 86.28,
+          "bars": 123
+        },
+        "NEAR-USD": {
+          "symbol": "NEAR-USD",
+          "trades": 2,
+          "wr": 0.0,
+          "pnl": -5973.05,
+          "per_day": -48.56,
+          "bars": 123
+        }
+      },
+      "errors": [],
+      "by_k": {
+        "1": {
+          "best_avg_day": {
+            "k": 1,
+            "symbols": [
+              "ATOM-USD"
+            ],
+            "avg_day": 86.28,
+            "sum_pnl": 10612.94,
+            "desk_day": 86.28,
+            "avg_wr": 1.0,
+            "all_positive": true
+          },
+          "best_desk_day": {
+            "k": 1,
+            "symbols": [
+              "ATOM-USD"
+            ],
+            "avg_day": 86.28,
+            "sum_pnl": 10612.94,
+            "desk_day": 86.28,
+            "avg_wr": 1.0,
+            "all_positive": true
+          },
+          "best_sum_pnl": {
+            "k": 1,
+            "symbols": [
+              "ATOM-USD"
+            ],
+            "avg_day": 86.28,
+            "sum_pnl": 10612.94,
+            "desk_day": 86.28,
+            "avg_wr": 1.0,
+            "all_positive": true
+          }
+        },
+        "2": {
+          "best_avg_day": {
+            "k": 2,
+            "symbols": [
+              "LTC-USD",
+              "ATOM-USD"
+            ],
+            "avg_day": 70.52,
+            "sum_pnl": 17348.26,
+            "desk_day": 141.04,
+            "avg_wr": 0.875,
+            "all_positive": true
+          },
+          "best_desk_day": {
+            "k": 2,
+            "symbols": [
+              "LTC-USD",
+              "ATOM-USD"
+            ],
+            "avg_day": 70.52,
+            "sum_pnl": 17348.26,
+            "desk_day": 141.04,
+            "avg_wr": 0.875,
+            "all_positive": true
+          },
+          "best_sum_pnl": {
+            "k": 2,
+            "symbols": [
+              "LTC-USD",
+              "ATOM-USD"
+            ],
+            "avg_day": 70.52,
+            "sum_pnl": 17348.26,
+            "desk_day": 141.04,
+            "avg_wr": 0.875,
+            "all_positive": true
+          }
+        },
+        "3": {
+          "best_avg_day": {
+            "k": 3,
+            "symbols": [
+              "BTC-USD",
+              "LTC-USD",
+              "ATOM-USD"
+            ],
+            "avg_day": 60.3,
+            "sum_pnl": 22249.68,
+            "desk_day": 180.89,
+            "avg_wr": 0.806,
+            "all_positive": true
+          },
+          "best_desk_day": {
+            "k": 3,
+            "symbols": [
+              "BTC-USD",
+              "LTC-USD",
+              "ATOM-USD"
+            ],
+            "avg_day": 60.3,
+            "sum_pnl": 22249.68,
+            "desk_day": 180.89,
+            "avg_wr": 0.806,
+            "all_positive": true
+          },
+          "best_sum_pnl": {
+            "k": 3,
+            "symbols": [
+              "BTC-USD",
+              "LTC-USD",
+              "ATOM-USD"
+            ],
+            "avg_day": 60.3,
+            "sum_pnl": 22249.68,
+            "desk_day": 180.89,
+            "avg_wr": 0.806,
+            "all_positive": true
+          }
+        },
+        "4": {
+          "best_avg_day": {
+            "k": 4,
+            "symbols": [
+              "BTC-USD",
+              "DOT-USD",
+              "LTC-USD",
+              "ATOM-USD"
+            ],
+            "avg_day": 55.17,
+            "sum_pnl": 27146.05,
+            "desk_day": 220.7,
+            "avg_wr": 0.854,
+            "all_positive": true
+          },
+          "best_desk_day": {
+            "k": 4,
+            "symbols": [
+              "BTC-USD",
+              "DOT-USD",
+              "LTC-USD",
+              "ATOM-USD"
+            ],
+            "avg_day": 55.17,
+            "sum_pnl": 27146.05,
+            "desk_day": 220.7,
+            "avg_wr": 0.854,
+            "all_positive": true
+          },
+          "best_sum_pnl": {
+            "k": 4,
+            "symbols": [
+              "BTC-USD",
+              "DOT-USD",
+              "LTC-USD",
+              "ATOM-USD"
+            ],
+            "avg_day": 55.17,
+            "sum_pnl": 27146.05,
+            "desk_day": 220.7,
+            "avg_wr": 0.854,
+            "all_positive": true
+          }
+        },
+        "5": {
+          "best_avg_day": {
+            "k": 5,
+            "symbols": [
+              "BTC-USD",
+              "XRP-USD",
+              "DOT-USD",
+              "LTC-USD",
+              "ATOM-USD"
+            ],
+            "avg_day": 51.87,
+            "sum_pnl": 31898.97,
+            "desk_day": 259.34,
+            "avg_wr": 0.883,
+            "all_positive": true
+          },
+          "best_desk_day": {
+            "k": 5,
+            "symbols": [
+              "BTC-USD",
+              "XRP-USD",
+              "DOT-USD",
+              "LTC-USD",
+              "ATOM-USD"
+            ],
+            "avg_day": 51.87,
+            "sum_pnl": 31898.97,
+            "desk_day": 259.34,
+            "avg_wr": 0.883,
+            "all_positive": true
+          },
+          "best_sum_pnl": {
+            "k": 5,
+            "symbols": [
+              "BTC-USD",
+              "XRP-USD",
+              "DOT-USD",
+              "LTC-USD",
+              "ATOM-USD"
+            ],
+            "avg_day": 51.87,
+            "sum_pnl": 31898.97,
+            "desk_day": 259.34,
+            "avg_wr": 0.883,
+            "all_positive": true
+          }
+        },
+        "6": {
+          "best_avg_day": {
+            "k": 6,
+            "symbols": [
+              "BTC-USD",
+              "ETH-USD",
+              "XRP-USD",
+              "DOT-USD",
+              "LTC-USD",
+              "ATOM-USD"
+            ],
+            "avg_day": 49.07,
+            "sum_pnl": 36213.79,
+            "desk_day": 294.42,
+            "avg_wr": 0.861,
+            "all_positive": true
+          },
+          "best_desk_day": {
+            "k": 6,
+            "symbols": [
+              "BTC-USD",
+              "ETH-USD",
+              "XRP-USD",
+              "DOT-USD",
+              "LTC-USD",
+              "ATOM-USD"
+            ],
+            "avg_day": 49.07,
+            "sum_pnl": 36213.79,
+            "desk_day": 294.42,
+            "avg_wr": 0.861,
+            "all_positive": true
+          },
+          "best_sum_pnl": {
+            "k": 6,
+            "symbols": [
+              "BTC-USD",
+              "ETH-USD",
+              "XRP-USD",
+              "DOT-USD",
+              "LTC-USD",
+              "ATOM-USD"
+            ],
+            "avg_day": 49.07,
+            "sum_pnl": 36213.79,
+            "desk_day": 294.42,
+            "avg_wr": 0.861,
+            "all_positive": true
+          }
+        },
+        "7": {
+          "best_avg_day": {
+            "k": 7,
+            "symbols": [
+              "BTC-USD",
+              "ETH-USD",
+              "XRP-USD",
+              "AVAX-USD",
+              "DOT-USD",
+              "LTC-USD",
+              "ATOM-USD"
+            ],
+            "avg_day": 43.79,
+            "sum_pnl": 37702.47,
+            "desk_day": 306.52,
+            "avg_wr": 0.833,
+            "all_positive": true
+          },
+          "best_desk_day": {
+            "k": 7,
+            "symbols": [
+              "BTC-USD",
+              "ETH-USD",
+              "XRP-USD",
+              "AVAX-USD",
+              "DOT-USD",
+              "LTC-USD",
+              "ATOM-USD"
+            ],
+            "avg_day": 43.79,
+            "sum_pnl": 37702.47,
+            "desk_day": 306.52,
+            "avg_wr": 0.833,
+            "all_positive": true
+          },
+          "best_sum_pnl": {
+            "k": 7,
+            "symbols": [
+              "BTC-USD",
+              "ETH-USD",
+              "XRP-USD",
+              "AVAX-USD",
+              "DOT-USD",
+              "LTC-USD",
+              "ATOM-USD"
+            ],
+            "avg_day": 43.79,
+            "sum_pnl": 37702.47,
+            "desk_day": 306.52,
+            "avg_wr": 0.833,
+            "all_positive": true
+          }
+        },
+        "8": {
+          "best_avg_day": {
+            "k": 8,
+            "symbols": [
+              "BTC-USD",
+              "ETH-USD",
+              "XRP-USD",
+              "BNB-USD",
+              "AVAX-USD",
+              "DOT-USD",
+              "LTC-USD",
+              "ATOM-USD"
+            ],
+            "avg_day": 39.31,
+            "sum_pnl": 38683.21,
+            "desk_day": 314.49,
+            "avg_wr": 0.804,
+            "all_positive": true
+          },
+          "best_desk_day": {
+            "k": 8,
+            "symbols": [
+              "BTC-USD",
+              "ETH-USD",
+              "XRP-USD",
+              "BNB-USD",
+              "AVAX-USD",
+              "DOT-USD",
+              "LTC-USD",
+              "ATOM-USD"
+            ],
+            "avg_day": 39.31,
+            "sum_pnl": 38683.21,
+            "desk_day": 314.49,
+            "avg_wr": 0.804,
+            "all_positive": true
+          },
+          "best_sum_pnl": {
+            "k": 8,
+            "symbols": [
+              "BTC-USD",
+              "ETH-USD",
+              "XRP-USD",
+              "BNB-USD",
+              "AVAX-USD",
+              "DOT-USD",
+              "LTC-USD",
+              "ATOM-USD"
+            ],
+            "avg_day": 39.31,
+            "sum_pnl": 38683.21,
+            "desk_day": 314.49,
+            "avg_wr": 0.804,
+            "all_positive": true
+          }
+        },
+        "9": {
+          "best_avg_day": {
+            "k": 9,
+            "symbols": [
+              "BTC-USD",
+              "ETH-USD",
+              "XRP-USD",
+              "BNB-USD",
+              "AVAX-USD",
+              "DOT-USD",
+              "LTC-USD",
+              "ATOM-USD",
+              "NEAR-USD"
+            ],
+            "avg_day": 29.55,
+            "sum_pnl": 32710.16,
+            "desk_day": 265.93,
+            "avg_wr": 0.715,
+            "all_positive": false
+          },
+          "best_desk_day": {
+            "k": 9,
+            "symbols": [
+              "BTC-USD",
+              "ETH-USD",
+              "XRP-USD",
+              "BNB-USD",
+              "AVAX-USD",
+              "DOT-USD",
+              "LTC-USD",
+              "ATOM-USD",
+              "NEAR-USD"
+            ],
+            "avg_day": 29.55,
+            "sum_pnl": 32710.16,
+            "desk_day": 265.93,
+            "avg_wr": 0.715,
+            "all_positive": false
+          },
+          "best_sum_pnl": {
+            "k": 9,
+            "symbols": [
+              "BTC-USD",
+              "ETH-USD",
+              "XRP-USD",
+              "BNB-USD",
+              "AVAX-USD",
+              "DOT-USD",
+              "LTC-USD",
+              "ATOM-USD",
+              "NEAR-USD"
+            ],
+            "avg_day": 29.55,
+            "sum_pnl": 32710.16,
+            "desk_day": 265.93,
+            "avg_wr": 0.715,
+            "all_positive": false
+          }
+        },
+        "10": {
+          "best_avg_day": {
+            "k": 10,
+            "symbols": [
+              "BTC-USD",
+              "ETH-USD",
+              "SOL-USD",
+              "XRP-USD",
+              "BNB-USD",
+              "AVAX-USD",
+              "DOT-USD",
+              "LTC-USD",
+              "ATOM-USD",
+              "NEAR-USD"
+            ],
+            "avg_day": 21.65,
+            "sum_pnl": 26633.46,
+            "desk_day": 216.53,
+            "avg_wr": 0.643,
+            "all_positive": false
+          },
+          "best_desk_day": {
+            "k": 10,
+            "symbols": [
+              "BTC-USD",
+              "ETH-USD",
+              "SOL-USD",
+              "XRP-USD",
+              "BNB-USD",
+              "AVAX-USD",
+              "DOT-USD",
+              "LTC-USD",
+              "ATOM-USD",
+              "NEAR-USD"
+            ],
+            "avg_day": 21.65,
+            "sum_pnl": 26633.46,
+            "desk_day": 216.53,
+            "avg_wr": 0.643,
+            "all_positive": false
+          },
+          "best_sum_pnl": {
+            "k": 10,
+            "symbols": [
+              "BTC-USD",
+              "ETH-USD",
+              "SOL-USD",
+              "XRP-USD",
+              "BNB-USD",
+              "AVAX-USD",
+              "DOT-USD",
+              "LTC-USD",
+              "ATOM-USD",
+              "NEAR-USD"
+            ],
+            "avg_day": 21.65,
+            "sum_pnl": 26633.46,
+            "desk_day": 216.53,
+            "avg_wr": 0.643,
+            "all_positive": false
+          }
+        },
+        "11": {
+          "best_avg_day": {
+            "k": 11,
+            "symbols": [
+              "BTC-USD",
+              "ETH-USD",
+              "SOL-USD",
+              "XRP-USD",
+              "BNB-USD",
+              "DOGE-USD",
+              "AVAX-USD",
+              "DOT-USD",
+              "LTC-USD",
+              "ATOM-USD",
+              "NEAR-USD"
+            ],
+            "avg_day": 11.43,
+            "sum_pnl": 15463.59,
+            "desk_day": 125.72,
+            "avg_wr": 0.585,
+            "all_positive": false
+          },
+          "best_desk_day": {
+            "k": 11,
+            "symbols": [
+              "BTC-USD",
+              "ETH-USD",
+              "SOL-USD",
+              "XRP-USD",
+              "BNB-USD",
+              "DOGE-USD",
+              "AVAX-USD",
+              "DOT-USD",
+              "LTC-USD",
+              "ATOM-USD",
+              "NEAR-USD"
+            ],
+            "avg_day": 11.43,
+            "sum_pnl": 15463.59,
+            "desk_day": 125.72,
+            "avg_wr": 0.585,
+            "all_positive": false
+          },
+          "best_sum_pnl": {
+            "k": 11,
+            "symbols": [
+              "BTC-USD",
+              "ETH-USD",
+              "SOL-USD",
+              "XRP-USD",
+              "BNB-USD",
+              "DOGE-USD",
+              "AVAX-USD",
+              "DOT-USD",
+              "LTC-USD",
+              "ATOM-USD",
+              "NEAR-USD"
+            ],
+            "avg_day": 11.43,
+            "sum_pnl": 15463.59,
+            "desk_day": 125.72,
+            "avg_wr": 0.585,
+            "all_positive": false
+          }
+        },
+        "12": {
+          "best_avg_day": {
+            "k": 12,
+            "symbols": [
+              "BTC-USD",
+              "ETH-USD",
+              "SOL-USD",
+              "XRP-USD",
+              "BNB-USD",
+              "DOGE-USD",
+              "AVAX-USD",
+              "LINK-USD",
+              "DOT-USD",
+              "LTC-USD",
+              "ATOM-USD",
+              "NEAR-USD"
+            ],
+            "avg_day": 2.34,
+            "sum_pnl": 3457.16,
+            "desk_day": 28.11,
+            "avg_wr": 0.536,
+            "all_positive": false
+          },
+          "best_desk_day": {
+            "k": 12,
+            "symbols": [
+              "BTC-USD",
+              "ETH-USD",
+              "SOL-USD",
+              "XRP-USD",
+              "BNB-USD",
+              "DOGE-USD",
+              "AVAX-USD",
+              "LINK-USD",
+              "DOT-USD",
+              "LTC-USD",
+              "ATOM-USD",
+              "NEAR-USD"
+            ],
+            "avg_day": 2.34,
+            "sum_pnl": 3457.16,
+            "desk_day": 28.11,
+            "avg_wr": 0.536,
+            "all_positive": false
+          },
+          "best_sum_pnl": {
+            "k": 12,
+            "symbols": [
+              "BTC-USD",
+              "ETH-USD",
+              "SOL-USD",
+              "XRP-USD",
+              "BNB-USD",
+              "DOGE-USD",
+              "AVAX-USD",
+              "LINK-USD",
+              "DOT-USD",
+              "LTC-USD",
+              "ATOM-USD",
+              "NEAR-USD"
+            ],
+            "avg_day": 2.34,
+            "sum_pnl": 3457.16,
+            "desk_day": 28.11,
+            "avg_wr": 0.536,
+            "all_positive": false
+          }
+        },
+        "13": {
+          "best_avg_day": {
+            "k": 13,
+            "symbols": [
+              "BTC-USD",
+              "ETH-USD",
+              "SOL-USD",
+              "XRP-USD",
+              "BNB-USD",
+              "DOGE-USD",
+              "AVAX-USD",
+              "LINK-USD",
+              "ADA-USD",
+              "DOT-USD",
+              "LTC-USD",
+              "ATOM-USD",
+              "NEAR-USD"
+            ],
+            "avg_day": -7.46,
+            "sum_pnl": -11936.57,
+            "desk_day": -97.04,
+            "avg_wr": 0.514,
+            "all_positive": false
+          },
+          "best_desk_day": {
+            "k": 13,
+            "symbols": [
+              "BTC-USD",
+              "ETH-USD",
+              "SOL-USD",
+              "XRP-USD",
+              "BNB-USD",
+              "DOGE-USD",
+              "AVAX-USD",
+              "LINK-USD",
+              "ADA-USD",
+              "DOT-USD",
+              "LTC-USD",
+              "ATOM-USD",
+              "NEAR-USD"
+            ],
+            "avg_day": -7.46,
+            "sum_pnl": -11936.57,
+            "desk_day": -97.04,
+            "avg_wr": 0.514,
+            "all_positive": false
+          },
+          "best_sum_pnl": {
+            "k": 13,
+            "symbols": [
+              "BTC-USD",
+              "ETH-USD",
+              "SOL-USD",
+              "XRP-USD",
+              "BNB-USD",
+              "DOGE-USD",
+              "AVAX-USD",
+              "LINK-USD",
+              "ADA-USD",
+              "DOT-USD",
+              "LTC-USD",
+              "ATOM-USD",
+              "NEAR-USD"
+            ],
+            "avg_day": -7.46,
+            "sum_pnl": -11936.57,
+            "desk_day": -97.04,
+            "avg_wr": 0.514,
+            "all_positive": false
+          }
+        }
+      },
+      "global_best_avg_day": {
+        "k": 1,
+        "symbols": [
+          "ATOM-USD"
+        ],
+        "avg_day": 86.28,
+        "sum_pnl": 10612.94,
+        "desk_day": 86.28,
+        "avg_wr": 1.0,
+        "all_positive": true
+      },
+      "global_best_desk_day": {
+        "k": 8,
+        "symbols": [
+          "BTC-USD",
+          "ETH-USD",
+          "XRP-USD",
+          "BNB-USD",
+          "AVAX-USD",
+          "DOT-USD",
+          "LTC-USD",
+          "ATOM-USD"
+        ],
+        "avg_day": 39.31,
+        "sum_pnl": 38683.21,
+        "desk_day": 314.49,
+        "avg_wr": 0.804,
+        "all_positive": true
+      },
+      "global_best_sum_pnl": {
+        "k": 8,
+        "symbols": [
+          "BTC-USD",
+          "ETH-USD",
+          "XRP-USD",
+          "BNB-USD",
+          "AVAX-USD",
+          "DOT-USD",
+          "LTC-USD",
+          "ATOM-USD"
+        ],
+        "avg_day": 39.31,
+        "sum_pnl": 38683.21,
+        "desk_day": 314.49,
+        "avg_wr": 0.804,
+        "all_positive": true
+      },
+      "positive_only": {
+        "k": 8,
+        "symbols": [
+          "ATOM-USD",
+          "LTC-USD",
+          "BTC-USD",
+          "DOT-USD",
+          "XRP-USD",
+          "ETH-USD",
+          "AVAX-USD",
+          "BNB-USD"
+        ],
+        "avg_day": 39.31,
+        "sum_pnl": 38683.21,
+        "desk_day": 314.49,
+        "avg_wr": 0.804,
+        "all_positive": true
+      },
+      "battle_roster": {
+        "k": 3,
+        "symbols": [
+          "BTC-USD",
+          "LTC-USD",
+          "ATOM-USD"
+        ],
+        "avg_day": 60.3,
+        "sum_pnl": 22249.68,
+        "desk_day": 180.89,
+        "avg_wr": 0.806,
+        "all_positive": true,
+        "rule": "all_positive_k3to5_max_avg_day"
+      }
+    },
+    "hustle": {
+      "per_symbol": {
+        "BTC-USD": {
+          "symbol": "BTC-USD",
+          "trades": 5,
+          "wr": 0.5,
+          "pnl": -1076.46,
+          "per_day": -8.75,
+          "bars": 123
+        },
+        "ETH-USD": {
+          "symbol": "ETH-USD",
+          "trades": 7,
+          "wr": 0.667,
+          "pnl": 3880.56,
+          "per_day": 31.55,
+          "bars": 123
+        },
+        "SOL-USD": {
+          "symbol": "SOL-USD",
+          "trades": 3,
+          "wr": 0.0,
+          "pnl": -12168.54,
+          "per_day": -98.93,
+          "bars": 123
+        },
+        "XRP-USD": {
+          "symbol": "XRP-USD",
+          "trades": 3,
+          "wr": 1.0,
+          "pnl": 4752.92,
+          "per_day": 38.64,
+          "bars": 123
+        },
+        "BNB-USD": {
+          "symbol": "BNB-USD",
+          "trades": 5,
+          "wr": 0.6,
+          "pnl": 980.74,
+          "per_day": 7.97,
+          "bars": 123
+        },
+        "DOGE-USD": {
+          "symbol": "DOGE-USD",
+          "trades": 3,
+          "wr": 0.0,
+          "pnl": -11169.87,
+          "per_day": -90.81,
+          "bars": 123
+        },
+        "AVAX-USD": {
+          "symbol": "AVAX-USD",
+          "trades": 4,
+          "wr": 0.75,
+          "pnl": 3654.64,
+          "per_day": 29.71,
+          "bars": 123
+        },
+        "LINK-USD": {
+          "symbol": "LINK-USD",
+          "trades": 3,
+          "wr": 0.0,
+          "pnl": -12006.43,
+          "per_day": -97.61,
+          "bars": 123
+        },
+        "ADA-USD": {
+          "symbol": "ADA-USD",
+          "trades": 5,
+          "wr": 0.25,
+          "pnl": -15393.73,
+          "per_day": -125.15,
+          "bars": 123
+        },
+        "DOT-USD": {
+          "symbol": "DOT-USD",
+          "trades": 2,
+          "wr": 1.0,
+          "pnl": 6862.61,
+          "per_day": 55.79,
+          "bars": 123
+        },
+        "LTC-USD": {
+          "symbol": "LTC-USD",
+          "trades": 5,
+          "wr": 0.75,
+          "pnl": 6735.32,
+          "per_day": 54.76,
+          "bars": 123
+        },
+        "ATOM-USD": {
+          "symbol": "ATOM-USD",
+          "trades": 2,
+          "wr": 1.0,
+          "pnl": 10803.16,
+          "per_day": 87.83,
+          "bars": 123
+        },
+        "NEAR-USD": {
+          "symbol": "NEAR-USD",
+          "trades": 3,
+          "wr": 0.0,
+          "pnl": -11736.5,
+          "per_day": -95.42,
+          "bars": 123
+        }
+      },
+      "errors": [],
+      "by_k": {
+        "1": {
+          "best_avg_day": {
+            "k": 1,
+            "symbols": [
+              "ATOM-USD"
+            ],
+            "avg_day": 87.83,
+            "sum_pnl": 10803.16,
+            "desk_day": 87.83,
+            "avg_wr": 1.0,
+            "all_positive": true
+          },
+          "best_desk_day": {
+            "k": 1,
+            "symbols": [
+              "ATOM-USD"
+            ],
+            "avg_day": 87.83,
+            "sum_pnl": 10803.16,
+            "desk_day": 87.83,
+            "avg_wr": 1.0,
+            "all_positive": true
+          },
+          "best_sum_pnl": {
+            "k": 1,
+            "symbols": [
+              "ATOM-USD"
+            ],
+            "avg_day": 87.83,
+            "sum_pnl": 10803.16,
+            "desk_day": 87.83,
+            "avg_wr": 1.0,
+            "all_positive": true
+          }
+        },
+        "2": {
+          "best_avg_day": {
+            "k": 2,
+            "symbols": [
+              "DOT-USD",
+              "ATOM-USD"
+            ],
+            "avg_day": 71.81,
+            "sum_pnl": 17665.77,
+            "desk_day": 143.62,
+            "avg_wr": 1.0,
+            "all_positive": true
+          },
+          "best_desk_day": {
+            "k": 2,
+            "symbols": [
+              "DOT-USD",
+              "ATOM-USD"
+            ],
+            "avg_day": 71.81,
+            "sum_pnl": 17665.77,
+            "desk_day": 143.62,
+            "avg_wr": 1.0,
+            "all_positive": true
+          },
+          "best_sum_pnl": {
+            "k": 2,
+            "symbols": [
+              "DOT-USD",
+              "ATOM-USD"
+            ],
+            "avg_day": 71.81,
+            "sum_pnl": 17665.77,
+            "desk_day": 143.62,
+            "avg_wr": 1.0,
+            "all_positive": true
+          }
+        },
+        "3": {
+          "best_avg_day": {
+            "k": 3,
+            "symbols": [
+              "DOT-USD",
+              "LTC-USD",
+              "ATOM-USD"
+            ],
+            "avg_day": 66.13,
+            "sum_pnl": 24401.09,
+            "desk_day": 198.38,
+            "avg_wr": 0.917,
+            "all_positive": true
+          },
+          "best_desk_day": {
+            "k": 3,
+            "symbols": [
+              "DOT-USD",
+              "LTC-USD",
+              "ATOM-USD"
+            ],
+            "avg_day": 66.13,
+            "sum_pnl": 24401.09,
+            "desk_day": 198.38,
+            "avg_wr": 0.917,
+            "all_positive": true
+          },
+          "best_sum_pnl": {
+            "k": 3,
+            "symbols": [
+              "DOT-USD",
+              "LTC-USD",
+              "ATOM-USD"
+            ],
+            "avg_day": 66.13,
+            "sum_pnl": 24401.09,
+            "desk_day": 198.38,
+            "avg_wr": 0.917,
+            "all_positive": true
+          }
+        },
+        "4": {
+          "best_avg_day": {
+            "k": 4,
+            "symbols": [
+              "XRP-USD",
+              "DOT-USD",
+              "LTC-USD",
+              "ATOM-USD"
+            ],
+            "avg_day": 59.25,
+            "sum_pnl": 29154.01,
+            "desk_day": 237.02,
+            "avg_wr": 0.938,
+            "all_positive": true
+          },
+          "best_desk_day": {
+            "k": 4,
+            "symbols": [
+              "XRP-USD",
+              "DOT-USD",
+              "LTC-USD",
+              "ATOM-USD"
+            ],
+            "avg_day": 59.25,
+            "sum_pnl": 29154.01,
+            "desk_day": 237.02,
+            "avg_wr": 0.938,
+            "all_positive": true
+          },
+          "best_sum_pnl": {
+            "k": 4,
+            "symbols": [
+              "XRP-USD",
+              "DOT-USD",
+              "LTC-USD",
+              "ATOM-USD"
+            ],
+            "avg_day": 59.25,
+            "sum_pnl": 29154.01,
+            "desk_day": 237.02,
+            "avg_wr": 0.938,
+            "all_positive": true
+          }
+        },
+        "5": {
+          "best_avg_day": {
+            "k": 5,
+            "symbols": [
+              "ETH-USD",
+              "XRP-USD",
+              "DOT-USD",
+              "LTC-USD",
+              "ATOM-USD"
+            ],
+            "avg_day": 53.71,
+            "sum_pnl": 33034.57,
+            "desk_day": 268.57,
+            "avg_wr": 0.883,
+            "all_positive": true
+          },
+          "best_desk_day": {
+            "k": 5,
+            "symbols": [
+              "ETH-USD",
+              "XRP-USD",
+              "DOT-USD",
+              "LTC-USD",
+              "ATOM-USD"
+            ],
+            "avg_day": 53.71,
+            "sum_pnl": 33034.57,
+            "desk_day": 268.57,
+            "avg_wr": 0.883,
+            "all_positive": true
+          },
+          "best_sum_pnl": {
+            "k": 5,
+            "symbols": [
+              "ETH-USD",
+              "XRP-USD",
+              "DOT-USD",
+              "LTC-USD",
+              "ATOM-USD"
+            ],
+            "avg_day": 53.71,
+            "sum_pnl": 33034.57,
+            "desk_day": 268.57,
+            "avg_wr": 0.883,
+            "all_positive": true
+          }
+        },
+        "6": {
+          "best_avg_day": {
+            "k": 6,
+            "symbols": [
+              "ETH-USD",
+              "XRP-USD",
+              "AVAX-USD",
+              "DOT-USD",
+              "LTC-USD",
+              "ATOM-USD"
+            ],
+            "avg_day": 49.71,
+            "sum_pnl": 36689.21,
+            "desk_day": 298.28,
+            "avg_wr": 0.861,
+            "all_positive": true
+          },
+          "best_desk_day": {
+            "k": 6,
+            "symbols": [
+              "ETH-USD",
+              "XRP-USD",
+              "AVAX-USD",
+              "DOT-USD",
+              "LTC-USD",
+              "ATOM-USD"
+            ],
+            "avg_day": 49.71,
+            "sum_pnl": 36689.21,
+            "desk_day": 298.28,
+            "avg_wr": 0.861,
+            "all_positive": true
+          },
+          "best_sum_pnl": {
+            "k": 6,
+            "symbols": [
+              "ETH-USD",
+              "XRP-USD",
+              "AVAX-USD",
+              "DOT-USD",
+              "LTC-USD",
+              "ATOM-USD"
+            ],
+            "avg_day": 49.71,
+            "sum_pnl": 36689.21,
+            "desk_day": 298.28,
+            "avg_wr": 0.861,
+            "all_positive": true
+          }
+        },
+        "7": {
+          "best_avg_day": {
+            "k": 7,
+            "symbols": [
+              "ETH-USD",
+              "XRP-USD",
+              "BNB-USD",
+              "AVAX-USD",
+              "DOT-USD",
+              "LTC-USD",
+              "ATOM-USD"
+            ],
+            "avg_day": 43.75,
+            "sum_pnl": 37669.95,
+            "desk_day": 306.25,
+            "avg_wr": 0.824,
+            "all_positive": true
+          },
+          "best_desk_day": {
+            "k": 7,
+            "symbols": [
+              "ETH-USD",
+              "XRP-USD",
+              "BNB-USD",
+              "AVAX-USD",
+              "DOT-USD",
+              "LTC-USD",
+              "ATOM-USD"
+            ],
+            "avg_day": 43.75,
+            "sum_pnl": 37669.95,
+            "desk_day": 306.25,
+            "avg_wr": 0.824,
+            "all_positive": true
+          },
+          "best_sum_pnl": {
+            "k": 7,
+            "symbols": [
+              "ETH-USD",
+              "XRP-USD",
+              "BNB-USD",
+              "AVAX-USD",
+              "DOT-USD",
+              "LTC-USD",
+              "ATOM-USD"
+            ],
+            "avg_day": 43.75,
+            "sum_pnl": 37669.95,
+            "desk_day": 306.25,
+            "avg_wr": 0.824,
+            "all_positive": true
+          }
+        },
+        "8": {
+          "best_avg_day": {
+            "k": 8,
+            "symbols": [
+              "BTC-USD",
+              "ETH-USD",
+              "XRP-USD",
+              "BNB-USD",
+              "AVAX-USD",
+              "DOT-USD",
+              "LTC-USD",
+              "ATOM-USD"
+            ],
+            "avg_day": 37.19,
+            "sum_pnl": 36593.49,
+            "desk_day": 297.5,
+            "avg_wr": 0.783,
+            "all_positive": false
+          },
+          "best_desk_day": {
+            "k": 8,
+            "symbols": [
+              "BTC-USD",
+              "ETH-USD",
+              "XRP-USD",
+              "BNB-USD",
+              "AVAX-USD",
+              "DOT-USD",
+              "LTC-USD",
+              "ATOM-USD"
+            ],
+            "avg_day": 37.19,
+            "sum_pnl": 36593.49,
+            "desk_day": 297.5,
+            "avg_wr": 0.783,
+            "all_positive": false
+          },
+          "best_sum_pnl": {
+            "k": 8,
+            "symbols": [
+              "BTC-USD",
+              "ETH-USD",
+              "XRP-USD",
+              "BNB-USD",
+              "AVAX-USD",
+              "DOT-USD",
+              "LTC-USD",
+              "ATOM-USD"
+            ],
+            "avg_day": 37.19,
+            "sum_pnl": 36593.49,
+            "desk_day": 297.5,
+            "avg_wr": 0.783,
+            "all_positive": false
+          }
+        },
+        "9": {
+          "best_avg_day": {
+            "k": 9,
+            "symbols": [
+              "BTC-USD",
+              "ETH-USD",
+              "XRP-USD",
+              "BNB-USD",
+              "DOGE-USD",
+              "AVAX-USD",
+              "DOT-USD",
+              "LTC-USD",
+              "ATOM-USD"
+            ],
+            "avg_day": 22.97,
+            "sum_pnl": 25423.62,
+            "desk_day": 206.69,
+            "avg_wr": 0.696,
+            "all_positive": false
+          },
+          "best_desk_day": {
+            "k": 9,
+            "symbols": [
+              "BTC-USD",
+              "ETH-USD",
+              "XRP-USD",
+              "BNB-USD",
+              "DOGE-USD",
+              "AVAX-USD",
+              "DOT-USD",
+              "LTC-USD",
+              "ATOM-USD"
+            ],
+            "avg_day": 22.97,
+            "sum_pnl": 25423.62,
+            "desk_day": 206.69,
+            "avg_wr": 0.696,
+            "all_positive": false
+          },
+          "best_sum_pnl": {
+            "k": 9,
+            "symbols": [
+              "BTC-USD",
+              "ETH-USD",
+              "XRP-USD",
+              "BNB-USD",
+              "DOGE-USD",
+              "AVAX-USD",
+              "DOT-USD",
+              "LTC-USD",
+              "ATOM-USD"
+            ],
+            "avg_day": 22.97,
+            "sum_pnl": 25423.62,
+            "desk_day": 206.69,
+            "avg_wr": 0.696,
+            "all_positive": false
+          }
+        },
+        "10": {
+          "best_avg_day": {
+            "k": 10,
+            "symbols": [
+              "BTC-USD",
+              "ETH-USD",
+              "XRP-USD",
+              "BNB-USD",
+              "DOGE-USD",
+              "AVAX-USD",
+              "DOT-USD",
+              "LTC-USD",
+              "ATOM-USD",
+              "NEAR-USD"
+            ],
+            "avg_day": 11.13,
+            "sum_pnl": 13687.12,
+            "desk_day": 111.27,
+            "avg_wr": 0.627,
+            "all_positive": false
+          },
+          "best_desk_day": {
+            "k": 10,
+            "symbols": [
+              "BTC-USD",
+              "ETH-USD",
+              "XRP-USD",
+              "BNB-USD",
+              "DOGE-USD",
+              "AVAX-USD",
+              "DOT-USD",
+              "LTC-USD",
+              "ATOM-USD",
+              "NEAR-USD"
+            ],
+            "avg_day": 11.13,
+            "sum_pnl": 13687.12,
+            "desk_day": 111.27,
+            "avg_wr": 0.627,
+            "all_positive": false
+          },
+          "best_sum_pnl": {
+            "k": 10,
+            "symbols": [
+              "BTC-USD",
+              "ETH-USD",
+              "XRP-USD",
+              "BNB-USD",
+              "DOGE-USD",
+              "AVAX-USD",
+              "DOT-USD",
+              "LTC-USD",
+              "ATOM-USD",
+              "NEAR-USD"
+            ],
+            "avg_day": 11.13,
+            "sum_pnl": 13687.12,
+            "desk_day": 111.27,
+            "avg_wr": 0.627,
+            "all_positive": false
+          }
+        },
+        "11": {
+          "best_avg_day": {
+            "k": 11,
+            "symbols": [
+              "BTC-USD",
+              "ETH-USD",
+              "XRP-USD",
+              "BNB-USD",
+              "DOGE-USD",
+              "AVAX-USD",
+              "LINK-USD",
+              "DOT-USD",
+              "LTC-USD",
+              "ATOM-USD",
+              "NEAR-USD"
+            ],
+            "avg_day": 1.24,
+            "sum_pnl": 1680.69,
+            "desk_day": 13.66,
+            "avg_wr": 0.57,
+            "all_positive": false
+          },
+          "best_desk_day": {
+            "k": 11,
+            "symbols": [
+              "BTC-USD",
+              "ETH-USD",
+              "XRP-USD",
+              "BNB-USD",
+              "DOGE-USD",
+              "AVAX-USD",
+              "LINK-USD",
+              "DOT-USD",
+              "LTC-USD",
+              "ATOM-USD",
+              "NEAR-USD"
+            ],
+            "avg_day": 1.24,
+            "sum_pnl": 1680.69,
+            "desk_day": 13.66,
+            "avg_wr": 0.57,
+            "all_positive": false
+          },
+          "best_sum_pnl": {
+            "k": 11,
+            "symbols": [
+              "BTC-USD",
+              "ETH-USD",
+              "XRP-USD",
+              "BNB-USD",
+              "DOGE-USD",
+              "AVAX-USD",
+              "LINK-USD",
+              "DOT-USD",
+              "LTC-USD",
+              "ATOM-USD",
+              "NEAR-USD"
+            ],
+            "avg_day": 1.24,
+            "sum_pnl": 1680.69,
+            "desk_day": 13.66,
+            "avg_wr": 0.57,
+            "all_positive": false
+          }
+        },
+        "12": {
+          "best_avg_day": {
+            "k": 12,
+            "symbols": [
+              "BTC-USD",
+              "ETH-USD",
+              "SOL-USD",
+              "XRP-USD",
+              "BNB-USD",
+              "DOGE-USD",
+              "AVAX-USD",
+              "LINK-USD",
+              "DOT-USD",
+              "LTC-USD",
+              "ATOM-USD",
+              "NEAR-USD"
+            ],
+            "avg_day": -7.11,
+            "sum_pnl": -10487.85,
+            "desk_day": -85.27,
+            "avg_wr": 0.522,
+            "all_positive": false
+          },
+          "best_desk_day": {
+            "k": 12,
+            "symbols": [
+              "BTC-USD",
+              "ETH-USD",
+              "SOL-USD",
+              "XRP-USD",
+              "BNB-USD",
+              "DOGE-USD",
+              "AVAX-USD",
+              "LINK-USD",
+              "DOT-USD",
+              "LTC-USD",
+              "ATOM-USD",
+              "NEAR-USD"
+            ],
+            "avg_day": -7.11,
+            "sum_pnl": -10487.85,
+            "desk_day": -85.27,
+            "avg_wr": 0.522,
+            "all_positive": false
+          },
+          "best_sum_pnl": {
+            "k": 12,
+            "symbols": [
+              "BTC-USD",
+              "ETH-USD",
+              "SOL-USD",
+              "XRP-USD",
+              "BNB-USD",
+              "DOGE-USD",
+              "AVAX-USD",
+              "LINK-USD",
+              "DOT-USD",
+              "LTC-USD",
+              "ATOM-USD",
+              "NEAR-USD"
+            ],
+            "avg_day": -7.11,
+            "sum_pnl": -10487.85,
+            "desk_day": -85.27,
+            "avg_wr": 0.522,
+            "all_positive": false
+          }
+        },
+        "13": {
+          "best_avg_day": {
+            "k": 13,
+            "symbols": [
+              "BTC-USD",
+              "ETH-USD",
+              "SOL-USD",
+              "XRP-USD",
+              "BNB-USD",
+              "DOGE-USD",
+              "AVAX-USD",
+              "LINK-USD",
+              "ADA-USD",
+              "DOT-USD",
+              "LTC-USD",
+              "ATOM-USD",
+              "NEAR-USD"
+            ],
+            "avg_day": -16.19,
+            "sum_pnl": -25881.58,
+            "desk_day": -210.42,
+            "avg_wr": 0.501,
+            "all_positive": false
+          },
+          "best_desk_day": {
+            "k": 13,
+            "symbols": [
+              "BTC-USD",
+              "ETH-USD",
+              "SOL-USD",
+              "XRP-USD",
+              "BNB-USD",
+              "DOGE-USD",
+              "AVAX-USD",
+              "LINK-USD",
+              "ADA-USD",
+              "DOT-USD",
+              "LTC-USD",
+              "ATOM-USD",
+              "NEAR-USD"
+            ],
+            "avg_day": -16.19,
+            "sum_pnl": -25881.58,
+            "desk_day": -210.42,
+            "avg_wr": 0.501,
+            "all_positive": false
+          },
+          "best_sum_pnl": {
+            "k": 13,
+            "symbols": [
+              "BTC-USD",
+              "ETH-USD",
+              "SOL-USD",
+              "XRP-USD",
+              "BNB-USD",
+              "DOGE-USD",
+              "AVAX-USD",
+              "LINK-USD",
+              "ADA-USD",
+              "DOT-USD",
+              "LTC-USD",
+              "ATOM-USD",
+              "NEAR-USD"
+            ],
+            "avg_day": -16.19,
+            "sum_pnl": -25881.58,
+            "desk_day": -210.42,
+            "avg_wr": 0.501,
+            "all_positive": false
+          }
+        }
+      },
+      "global_best_avg_day": {
+        "k": 1,
+        "symbols": [
+          "ATOM-USD"
+        ],
+        "avg_day": 87.83,
+        "sum_pnl": 10803.16,
+        "desk_day": 87.83,
+        "avg_wr": 1.0,
+        "all_positive": true
+      },
+      "global_best_desk_day": {
+        "k": 7,
+        "symbols": [
+          "ETH-USD",
+          "XRP-USD",
+          "BNB-USD",
+          "AVAX-USD",
+          "DOT-USD",
+          "LTC-USD",
+          "ATOM-USD"
+        ],
+        "avg_day": 43.75,
+        "sum_pnl": 37669.95,
+        "desk_day": 306.25,
+        "avg_wr": 0.824,
+        "all_positive": true
+      },
+      "global_best_sum_pnl": {
+        "k": 7,
+        "symbols": [
+          "ETH-USD",
+          "XRP-USD",
+          "BNB-USD",
+          "AVAX-USD",
+          "DOT-USD",
+          "LTC-USD",
+          "ATOM-USD"
+        ],
+        "avg_day": 43.75,
+        "sum_pnl": 37669.95,
+        "desk_day": 306.25,
+        "avg_wr": 0.824,
+        "all_positive": true
+      },
+      "positive_only": {
+        "k": 7,
+        "symbols": [
+          "ATOM-USD",
+          "DOT-USD",
+          "LTC-USD",
+          "XRP-USD",
+          "ETH-USD",
+          "AVAX-USD",
+          "BNB-USD"
+        ],
+        "avg_day": 43.75,
+        "sum_pnl": 37669.95,
+        "desk_day": 306.25,
+        "avg_wr": 0.824,
+        "all_positive": true
+      },
+      "battle_roster": {
+        "k": 3,
+        "symbols": [
+          "DOT-USD",
+          "LTC-USD",
+          "ATOM-USD"
+        ],
+        "avg_day": 66.13,
+        "sum_pnl": 24401.09,
+        "desk_day": 198.38,
+        "avg_wr": 0.917,
+        "all_positive": true,
+        "rule": "all_positive_k3to5_max_avg_day"
+      }
+    }
+  },
+  "battle_winner": {
+    "profile": "hustle",
+    "k": 3,
+    "symbols": [
+      "DOT-USD",
+      "LTC-USD",
+      "ATOM-USD"
+    ],
+    "avg_day": 66.13,
+    "sum_pnl": 24401.09,
+    "desk_day": 198.38,
+    "avg_wr": 0.917,
+    "all_positive": true,
+    "rule": "all_positive_k3to5_max_avg_day"
+  },
+  "champion_single": {
+    "crypto": {
+      "k": 1,
+      "symbols": [
+        "ATOM-USD"
+      ],
+      "avg_day": 86.28,
+      "sum_pnl": 10612.94,
+      "desk_day": 86.28,
+      "avg_wr": 1.0,
+      "all_positive": true
+    },
+    "hustle": {
+      "k": 1,
+      "symbols": [
+        "ATOM-USD"
+      ],
+      "avg_day": 87.83,
+      "sum_pnl": 10803.16,
+      "desk_day": 87.83,
+      "avg_wr": 1.0,
+      "all_positive": true
+    }
+  },
+  "disclaimer": "REAL MARKET DATA research backtest. Subset selection is in-sample on this window \u2014 rivals can challenge out-of-sample. Not broker PnL."
+}

@@ -35,6 +35,14 @@ CRYPTO_UNIVERSE = (
 # Highest total PnL on the scored 4-month live window (hustle: ~$10.8k / ~$88/day).
 CHAMPION_ASSET = "ATOM-USD"
 
+# Optimal battle roster from crypto subset sweep (see crypto_sweep.py).
+# k=3 all-positive, max avg $/day under hustle: DOT + LTC + ATOM.
+BATTLE_CRYPTO_UNIVERSE = (
+    "DOT-USD",
+    "LTC-USD",
+    "ATOM-USD",
+)
+
 
 @dataclass
 class SymbolReport:

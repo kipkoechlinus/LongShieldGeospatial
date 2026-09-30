@@ -86,6 +86,24 @@ Avg **~$45/day**, avg WR **~81%**, sum PnL **~$33k**. Still under $100/day/symbo
 **Champion asset:** `ATOM-USD` — highest total PnL (~**$10.8k**, ~$88/day, 2/2 wins on hustle).  
 `python3 -m behavioral_edge.cli live --months 4 --champion`
 
+### Crypto subset sweep (battle roster)
+
+```bash
+python3 -m behavioral_edge.cli sweep --months 4 --out receipts/crypto-subset-sweep.json
+python3 -m behavioral_edge.cli live --months 4 --battle
+```
+
+Rule: all-positive names, **k ∈ [3,5]**, maximize avg $/day.
+
+| k | Best hustle book | Avg $/day | Sum PnL |
+|---|------------------|-----------|---------|
+| 1 | ATOM | ~$88 | ~$10.8k |
+| **3** | **DOT + LTC + ATOM** | **~$66** | **~$24.4k** |
+| 4 | + XRP | ~$59 | ~$29.2k |
+| 7 | all positive | ~$44 | ~$37.7k |
+
+**Battle pick: k=3** — DOT / LTC / ATOM under `hustle` (~92% WR). Receipt: `receipts/live-4mo-battle.json`.
+
 ## Disclaimer
 
 Edges decay. Synthetic hustle ≠ live broker PnL. Validate on real OHLCV before risking capital.
