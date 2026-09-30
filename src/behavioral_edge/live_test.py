@@ -32,6 +32,9 @@ CRYPTO_UNIVERSE = (
     "AVAX-USD",
 )
 
+# Highest total PnL on the scored 4-month live window (hustle: ~$10.8k / ~$88/day).
+CHAMPION_ASSET = "ATOM-USD"
+
 
 @dataclass
 class SymbolReport:

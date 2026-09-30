@@ -83,6 +83,9 @@ FOMO fades bled ~−$12k on majors; `crypto` keeps disposition + anchors only.
 
 Avg **~$45/day**, avg WR **~81%**, sum PnL **~$33k**. Still under $100/day/symbol. Naive majors (BTC/ETH/SOL/XRP/BNB/DOGE) + hustle FOMO: **−$20/day**. Receipt: `receipts/live-4mo-crypto.json`.
 
+**Champion asset:** `ATOM-USD` — highest total PnL (~**$10.8k**, ~$88/day, 2/2 wins on hustle).  
+`python3 -m behavioral_edge.cli live --months 4 --champion`
+
 ## Disclaimer
 
 Edges decay. Synthetic hustle ≠ live broker PnL. Validate on real OHLCV before risking capital.
