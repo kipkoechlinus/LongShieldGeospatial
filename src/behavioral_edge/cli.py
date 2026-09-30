@@ -108,6 +108,29 @@ def main(argv: list[str] | None = None) -> int:
     compare.add_argument("--metric", default="pnl_per_day")
     compare.add_argument("--json", action="store_true")
 
+    live = sub.add_parser(
+        "live",
+        help="Backtest on last N months of real yfinance data (warm-up + scored window)",
+    )
+    live.add_argument("--months", type=int, default=4)
+    live.add_argument("--equity", type=float, default=100_000)
+    live.add_argument(
+        "--profile",
+        choices=sorted(PROFILES),
+        default="hustle",
+    )
+    live.add_argument(
+        "--symbols",
+        default="SPY,QQQ,IWM,AAPL,NVDA",
+        help="comma-separated tickers",
+    )
+    live.add_argument("--json", action="store_true")
+    live.add_argument(
+        "--out",
+        default="",
+        help="optional path to write JSON results",
+    )
+
     args = parser.parse_args(argv)
     profile = PROFILES.get(getattr(args, "profile", None) or "hustle", HUSTLE)
     risk = RiskConfig(account_equity=getattr(args, "equity", 100_000))
@@ -417,6 +440,59 @@ def main(argv: list[str] | None = None) -> int:
                 for flag in report["methodology_flags"]:
                     print(f"  • {flag}")
             print(report["note"])
+        return 0
+
+    if args.cmd == "live":
+        from behavioral_edge.live_test import run_live_window
+
+        symbols = tuple(s.strip().upper() for s in args.symbols.split(",") if s.strip())
+        report = run_live_window(
+            symbols=symbols,
+            months=args.months,
+            equity=args.equity,
+            profile=profile,
+        )
+        if args.out:
+            from pathlib import Path
+
+            Path(args.out).parent.mkdir(parents=True, exist_ok=True)
+            Path(args.out).write_text(json.dumps(report, indent=2) + "\n")
+        if args.json:
+            print(json.dumps(report, indent=2))
+        else:
+            print(
+                f"LIVE WINDOW — last {report['months']} months  "
+                f"profile={report['profile']}"
+            )
+            print("=" * 72)
+            print(f"Score window  : {report['score_start']} → {report['score_end']}")
+            print(f"Warm-up from  : {report['fetch_start']}")
+            print(
+                f"{'sym':<6} {'trades':>7} {'WR':>7} {'$/day':>10} "
+                f"{'PnL':>12} {'DD':>8}"
+            )
+            for row in report["per_symbol"]:
+                print(
+                    f"{row['symbol']:<6} {row['trades']:>7} {row['win_rate']:>7.1%} "
+                    f"${row['pnl_per_day']:>9,.2f} ${row['total_pnl']:>11,.0f} "
+                    f"{row['max_drawdown']:>8.2%}"
+                )
+            agg = report["aggregate"]
+            print("-" * 72)
+            print(
+                f"Avg $/day     : ${agg['avg_pnl_per_day']:,.2f}  "
+                f"| sum PnL ${agg['sum_total_pnl']:,.0f}  "
+                f"| avg WR {agg['avg_win_rate']:.1%}"
+            )
+            print(
+                f"Clears $100/d : {agg['clears_100_day_avg']}  "
+                f"(avg across symbols)"
+            )
+            if report["errors"]:
+                print("Errors:")
+                for err in report["errors"]:
+                    print(f"  • {err['symbol']}: {err['error']}")
+            print(report["disclaimer"])
         return 0
 
     return 1

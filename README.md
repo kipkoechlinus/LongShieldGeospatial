@@ -7,11 +7,12 @@ Harvest human behavioral bugs. **Hustle mode** clears and beats the $100/day bar
 ## Hustle league ($/day)
 
 ```bash
-python3 -m pip install -e ".[dev]"
+python3 -m pip install -e ".[dev,live]"
 python3 -m behavioral_edge.cli hustle
 python3 -m behavioral_edge.cli hustle --stress
 python3 -m behavioral_edge.cli receipt --out receipts/hustle-receipt.json
 python3 -m behavioral_edge.cli compare --ours receipts/hustle-receipt.json --theirs receipts/RIVAL_RECEIPT_TEMPLATE.json
+python3 -m behavioral_edge.cli live --months 4 --profile hustle --out receipts/live-4mo-hustle.json
 python3 -m pytest -q
 ```
 
@@ -45,6 +46,25 @@ When rivals bring numbers, don’t argue — **compare sealed receipts**.
 | `high_win` | Max hit-rate scalps |
 | `balanced` | Larger R |
 
+## Live window (last 4 months, yfinance)
+
+Detectors are **σ-adaptive** (20d return std): fixed −3% panic gates were silent on real SPY.
+
+```bash
+python3 -m behavioral_edge.cli live --months 4 --profile hustle
+```
+
+**Hustle snapshot** (score `2026-05-30` → `2026-09-30`, $100k/symbol, independent books):
+
+| Symbol | Trades | WR | $/day | PnL |
+|--------|--------|----|-------|-----|
+| SPY | 2 | 100% | **~$114** | ~$9.6k |
+| NVDA | 1 | 100% | ~$59 | ~$5.0k |
+| IWM | 2 | 0% | −$61 | −$5.1k |
+| QQQ / AAPL | 0 | — | $0 | $0 |
+
+Avg across symbols **~$22/day** — does **not** clear $100/day on this real tape. Best single name (SPY) does. Receipts: `receipts/live-4mo-*.json`.
+
 ## Disclaimer
 
-Edges decay. Validate on real OHLCV before risking capital.
+Edges decay. Synthetic hustle ≠ live broker PnL. Validate on real OHLCV before risking capital.

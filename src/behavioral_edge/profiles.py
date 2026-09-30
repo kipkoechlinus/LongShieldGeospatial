@@ -85,7 +85,8 @@ PREDATOR = TradeProfile(
     trail_after_r=0.30,
     allowed_kinds=frozenset(
         {
-            SignalKind.PANIC_CAPITULATION,
+            # Panic kept out — post-climax ATR stops eat the book on waterfall
+            # retests; traps + FOMO carry the arena edge.
             SignalKind.ANCHOR_REJECTION,
             SignalKind.FOMO_EXHAUSTION,
         }
