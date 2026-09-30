@@ -30,6 +30,12 @@ class TradeProfile:
     require_confirmation: bool = True
     # If True, time stop only banks green trades (never crystallizes a loser)
     time_stop_winners_only: bool = False
+    # Bank this fraction at scalp; leave runner with BE stop (0 = full scalp exit)
+    scale_out_frac: float = 0.0
+    # Bars to cool down after a full stop-out
+    cooldown_bars: int = 0
+    # Min bars between entries
+    min_signal_gap: int = 0
 
 
 BALANCED = TradeProfile(
@@ -68,7 +74,7 @@ HIGH_WIN = TradeProfile(
     time_stop_winners_only=True,
 )
 
-# Predator: high_win exits + stricter gates — built to win the Muse/Grok arena
+# Predator: hardened for rival stress — scale-out + cooldown + gap
 PREDATOR = TradeProfile(
     name="predator",
     stop_scale=1.0,  # meta ATR overwrites stops; keep scale neutral
@@ -76,19 +82,22 @@ PREDATOR = TradeProfile(
     min_strength=0.58,
     min_edge=0.62,
     min_confluence=0.20,
-    time_stop_bars=3,
-    scalp_r=0.60,
-    trail_after_r=0.35,
+    time_stop_bars=4,
+    scalp_r=0.55,
+    trail_after_r=0.30,
     allowed_kinds=frozenset(
         {
+            # Disposition dips kept out of predator — higher variance vs rivals
             SignalKind.PANIC_CAPITULATION,
-            SignalKind.DISPOSITION_CONTINUATION,
             SignalKind.ANCHOR_REJECTION,
             SignalKind.FOMO_EXHAUSTION,
         }
     ),
     require_confirmation=True,
     time_stop_winners_only=True,
+    scale_out_frac=0.60,  # bank 60% early; runner hunts remainder
+    cooldown_bars=2,
+    min_signal_gap=3,
 )
 
 PROFILES: dict[str, TradeProfile] = {

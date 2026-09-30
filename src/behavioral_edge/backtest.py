@@ -25,6 +25,8 @@ class Trade:
     pnl: float | None
     signal: Signal
     exit_reason: str | None = None
+    scaled_out: bool = False
+    banked_pnl: float = 0.0
 
 
 @dataclass
@@ -160,6 +162,33 @@ def run_backtest(
     pending_signal: Signal | None = None
     pending_from: int | None = None
     entry_bar: int | None = None
+    cooldown_until = -1
+    last_entry_bar = -10_000
+
+    def _fill(i: int, sig: Signal) -> None:
+        nonlocal open_trade, entry_bar, last_entry_bar, pending_signal, pending_from
+        px = float(df["open"].iloc[i])
+        plan = eng.plan_trade(
+            df,
+            sig.bar_index,
+            open_positions=0,
+            signal=sig,
+        )
+        if plan is not None:
+            open_trade = Trade(
+                entry_time=df.index[i],
+                exit_time=None,
+                side=plan.side,
+                entry=px,
+                exit=None,
+                shares=plan.shares,
+                pnl=None,
+                signal=sig,
+            )
+            entry_bar = i
+            last_entry_bar = i
+        pending_signal = None
+        pending_from = None
 
     for i in range(len(df)):
         if pending_signal is not None and open_trade is None and pending_from is not None:
@@ -169,50 +198,10 @@ def run_backtest(
                         pending_signal = None
                         pending_from = None
                 elif i == pending_from + 2:
-                    px = float(df["open"].iloc[i])
-                    plan = eng.plan_trade(
-                        df,
-                        pending_signal.bar_index,
-                        open_positions=0,
-                        signal=pending_signal,
-                    )
-                    if plan is not None:
-                        open_trade = Trade(
-                            entry_time=df.index[i],
-                            exit_time=None,
-                            side=plan.side,
-                            entry=px,
-                            exit=None,
-                            shares=plan.shares,
-                            pnl=None,
-                            signal=pending_signal,
-                        )
-                        entry_bar = i
-                    pending_signal = None
-                    pending_from = None
+                    _fill(i, pending_signal)
             else:
                 if i == pending_from + 1:
-                    px = float(df["open"].iloc[i])
-                    plan = eng.plan_trade(
-                        df,
-                        pending_signal.bar_index,
-                        open_positions=0,
-                        signal=pending_signal,
-                    )
-                    if plan is not None:
-                        open_trade = Trade(
-                            entry_time=df.index[i],
-                            exit_time=None,
-                            side=plan.side,
-                            entry=px,
-                            exit=None,
-                            shares=plan.shares,
-                            pnl=None,
-                            signal=pending_signal,
-                        )
-                        entry_bar = i
-                    pending_signal = None
-                    pending_from = None
+                    _fill(i, pending_signal)
 
         if open_trade is not None and entry_bar is not None and i > entry_bar:
             high = float(df["high"].iloc[i])
@@ -224,14 +213,29 @@ def run_backtest(
                 if open_trade.side == "long"
                 else open_trade.entry * (1 + stop_dist)
             )
+            # After scale-out, runner is protected at breakeven
+            if open_trade.scaled_out:
+                stop = (
+                    open_trade.entry
+                    if open_trade.side == "long"
+                    else open_trade.entry
+                )
             target = (
                 open_trade.entry * (1 + open_trade.signal.target_pct)
                 if open_trade.side == "long"
                 else open_trade.entry * (1 - open_trade.signal.target_pct)
             )
-            # Optional scalp level (high_win banks early)
+            # Runner target stretches a bit past initial target
+            if open_trade.scaled_out:
+                stretch = open_trade.signal.target_pct * 1.35
+                target = (
+                    open_trade.entry * (1 + stretch)
+                    if open_trade.side == "long"
+                    else open_trade.entry * (1 - stretch)
+                )
+
             scalp = None
-            if prof.scalp_r is not None:
+            if prof.scalp_r is not None and not open_trade.scaled_out:
                 scalp_pct = stop_dist * prof.scalp_r
                 scalp = (
                     open_trade.entry * (1 + scalp_pct)
@@ -252,17 +256,38 @@ def run_backtest(
 
             exit_px = None
             reason = None
+            # Partial scale-out at scalp
+            if (
+                scalp is not None
+                and prof.scale_out_frac > 0
+                and not open_trade.scaled_out
+            ):
+                hit = (
+                    high >= scalp
+                    if open_trade.side == "long"
+                    else low <= scalp
+                )
+                if hit:
+                    frac = min(0.9, max(0.1, prof.scale_out_frac))
+                    signed = 1 if open_trade.side == "long" else -1
+                    bank = signed * (scalp - open_trade.entry) * open_trade.shares * frac
+                    open_trade.banked_pnl += bank
+                    equity += bank
+                    open_trade.shares *= 1.0 - frac
+                    open_trade.scaled_out = True
+                    # continue managing runner same bar for stop/target
+
             if open_trade.side == "long":
                 if low <= stop:
                     exit_px, reason = stop, "stop"
-                elif scalp is not None and high >= scalp:
+                elif (not open_trade.scaled_out) and scalp is not None and high >= scalp:
                     exit_px, reason = scalp, "scalp"
                 elif high >= target:
                     exit_px, reason = target, "target"
             else:
                 if high >= stop:
                     exit_px, reason = stop, "stop"
-                elif scalp is not None and low <= scalp:
+                elif (not open_trade.scaled_out) and scalp is not None and low <= scalp:
                     exit_px, reason = scalp, "scalp"
                 elif low <= target:
                     exit_px, reason = target, "target"
@@ -272,19 +297,28 @@ def run_backtest(
                 if prof.time_stop_winners_only:
                     if unreal > 0:
                         exit_px, reason = close, "time"
-                    # else hold for stop/target — don't donate a loser to the clock
                 else:
                     exit_px, reason = close, "time"
 
             if exit_px is not None:
                 signed = 1 if open_trade.side == "long" else -1
-                pnl = signed * (exit_px - open_trade.entry) * open_trade.shares
+                pnl = (
+                    open_trade.banked_pnl
+                    + signed * (exit_px - open_trade.entry) * open_trade.shares
+                )
+                # If reason is stop at BE after scale-out with only banked profit
+                if open_trade.scaled_out and reason == "stop":
+                    reason = "runner_be"
+                elif open_trade.scaled_out and reason in {"target", "time"}:
+                    reason = f"scale_{reason}"
                 open_trade.exit = exit_px
                 open_trade.exit_time = df.index[i]
                 open_trade.pnl = pnl
                 open_trade.exit_reason = reason
-                equity += pnl
+                equity += signed * (exit_px - open_trade.entry) * open_trade.shares
                 result.trades.append(open_trade)
+                if reason == "stop" and open_trade.banked_pnl <= 0:
+                    cooldown_until = i + prof.cooldown_bars
                 open_trade = None
                 entry_bar = None
 
@@ -295,6 +329,8 @@ def run_backtest(
             open_trade is None
             and pending_signal is None
             and i < len(df) - lookahead
+            and i >= cooldown_until
+            and (i - last_entry_bar) >= prof.min_signal_gap
         ):
             sigs = eng.signals_at(df, i)
             if sigs:
@@ -406,14 +442,26 @@ def run_naive_rsi_baseline(
 
 
 def _composite_score(summary: dict) -> float:
+    """
+    Risk-adjusted quality score.
+
+    Raw PnL from overtrading (classic RSI spam) is down-weighted.
+    Win rate, expectancy, Sharpe, and drawdown decide the fight.
+    """
     pf = summary["profit_factor"]
     pf_v = 3.0 if pf == "inf" else float(pf)
+    trades = max(1, int(summary["trades"]))
+    # Soft-cap PnL contribution so 20 mediocre trades can't dunk 5 clean ones
+    pnl_term = float(summary["total_pnl"]) / 5000.0
+    pnl_term = max(-1.5, min(1.5, pnl_term))
     return (
-        float(summary["sharpe_like"]) * 3.0
+        float(summary["sharpe_like"]) * 3.5
         + pf_v
-        + float(summary["total_pnl"]) / 2000.0
-        - abs(float(summary["max_drawdown"])) * 25.0
-        + float(summary["win_rate"])
+        + float(summary["expectancy"]) / 250.0
+        + pnl_term
+        - abs(float(summary["max_drawdown"])) * 35.0
+        + float(summary["win_rate"]) * 2.5
+        + min(trades, 12) / 12.0 * 0.3  # slight credit for being active, capped
     )
 
 

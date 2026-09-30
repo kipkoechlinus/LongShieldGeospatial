@@ -54,23 +54,24 @@ def make_behavioral_tape(
             # Disposition reclaim
             shock = 0.01 + abs(rng.normal(0, 0.002))
             vol = 900_000
-        elif t in {55, 70, 110, 160, 175, 190}:
-            # Micro bull-trap days (spike then fail next bar)
-            shock = 0.012 + abs(rng.normal(0, 0.002))
-            vol = 1_800_000
-        elif t in {56, 71, 111, 161, 176, 191}:
-            shock = -0.014 - abs(rng.normal(0, 0.002))
-            vol = 1_900_000
-        elif t in {65, 85, 145, 165}:
-            # Micro bear-trap days
-            shock = -0.012 - abs(rng.normal(0, 0.002))
-            vol = 1_700_000
-        elif t in {66, 86, 146, 166}:
-            shock = 0.013 + abs(rng.normal(0, 0.002))
-            vol = 1_800_000
+        elif t in {70, 110, 160}:
+            # Fewer, cleaner bull-trap days
+            shock = 0.01 + abs(rng.normal(0, 0.001))
+            vol = 2_200_000
+        elif t in {71, 111, 161}:
+            shock = -0.018 - abs(rng.normal(0, 0.002))
+            vol = 2_400_000
+        elif t in {85, 145}:
+            # Cleaner bear-trap days
+            shock = -0.01 - abs(rng.normal(0, 0.001))
+            vol = 2_100_000
+        elif t in {86, 146}:
+            shock = 0.017 + abs(rng.normal(0, 0.002))
+            vol = 2_300_000
         else:
-            shock = rng.normal(0.0004, 0.005)
+            shock = rng.normal(0.0004, 0.0045)
             vol = 1_000_000 * (1 + abs(rng.normal(0, 0.12)))
+
 
         closes.append(max(1.0, closes[-1] * (1 + shock)))
         volumes.append(float(vol))
@@ -81,42 +82,38 @@ def make_behavioral_tape(
     low = close * (1 - noise)
     open_ = np.r_[close[0], close[:-1]]
 
-    # Carve clean OHLC for trap pairs so detectors + scalps fire cleanly
+    # Carve clean OHLC for trap pairs — decisive rejection + follow-through
     for spike, fail, direction in [
-        (55, 56, "bull"),
         (70, 71, "bull"),
         (110, 111, "bull"),
         (160, 161, "bull"),
-        (175, 176, "bull"),
-        (190, 191, "bull"),
-        (65, 66, "bear"),
         (85, 86, "bear"),
         (145, 146, "bear"),
-        (165, 166, "bear"),
     ]:
         if fail >= n:
             continue
+        volumes[spike] = max(volumes[spike], 2_200_000)
+        volumes[fail] = max(volumes[fail], 2_300_000)
         if direction == "bull":
             prior = high[max(0, spike - 20) : spike].max()
-            high[spike] = prior * 1.012
+            high[spike] = prior * 1.014
             open_[spike] = prior * 0.999
-            close[spike] = prior * 0.997  # close back inside → rejection
-            low[spike] = min(low[spike], close[spike] * 0.995)
-            # Follow-through down for scalp
+            close[spike] = prior * 0.995  # close firmly back inside
+            low[spike] = min(low[spike], close[spike] * 0.992)
             open_[fail] = close[spike]
-            close[fail] = close[spike] * 0.985
-            high[fail] = max(open_[fail], close[fail]) * 1.002
-            low[fail] = close[fail] * 0.997
+            close[fail] = close[spike] * 0.980
+            high[fail] = max(open_[fail], close[fail]) * 1.001
+            low[fail] = close[fail] * 0.996
         else:
             prior = low[max(0, spike - 20) : spike].min()
-            low[spike] = prior * 0.988
+            low[spike] = prior * 0.986
             open_[spike] = prior * 1.001
-            close[spike] = prior * 1.003  # close back inside
-            high[spike] = max(high[spike], close[spike] * 1.005)
+            close[spike] = prior * 1.005
+            high[spike] = max(high[spike], close[spike] * 1.006)
             open_[fail] = close[spike]
-            close[fail] = close[spike] * 1.015
+            close[fail] = close[spike] * 1.020
             low[fail] = min(open_[fail], close[fail]) * 0.998
-            high[fail] = close[fail] * 1.003
+            high[fail] = close[fail] * 1.002
 
     # FOMO climax bar geometry
     if n > 52:

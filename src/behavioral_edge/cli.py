@@ -11,6 +11,7 @@ from behavioral_edge.data import make_behavioral_tape
 from behavioral_edge.engine import BehavioralEdgeEngine
 from behavioral_edge.profiles import HIGH_WIN, PREDATOR, PROFILES
 from behavioral_edge.risk import RiskConfig
+from behavioral_edge.stress import run_stress
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -49,6 +50,15 @@ def main(argv: list[str] | None = None) -> int:
     arena.add_argument("--equity", type=float, default=100_000)
     arena.add_argument("--profile", choices=sorted(PROFILES), default="predator")
     arena.add_argument("--json", action="store_true")
+
+    stress = sub.add_parser(
+        "stress",
+        help="Multi-seed arena stress — prove we don't only win on lucky tape",
+    )
+    stress.add_argument("--bars", type=int, default=220)
+    stress.add_argument("--equity", type=float, default=100_000)
+    stress.add_argument("--profile", choices=sorted(PROFILES), default="predator")
+    stress.add_argument("--json", action="store_true")
 
     args = parser.parse_args(argv)
     profile = PROFILES[getattr(args, "profile", "predator")]
@@ -174,10 +184,55 @@ def main(argv: list[str] | None = None) -> int:
                 f"Winner: {report['winner']}  | our rank #{report['our_rank']}  "
                 f"| margin vs #2: {report['margin_vs_second']}"
             )
+            print(
+                f"vs Muse/Grok   : "
+                f"{'BEATS BOTH' if report['beats_muse_grok'] else 'behind an AI rival'}"
+            )
             if report["we_win"]:
                 print("Status: BEHAVIORAL EDGE TAKES THE ARENA.")
+            elif report["beats_muse_grok"]:
+                print("Status: Beat Muse+Grok stacks; classic RSI still farming mean-reversion.")
             else:
-                print("Status: rivals ahead — tune and re-run.")
+                print("Status: rivals ahead — keep hardening.")
+        return 0
+
+    if args.cmd == "stress":
+        report = run_stress(
+            bars=args.bars,
+            equity=args.equity,
+            profile=profile,
+        )
+        if args.json:
+            print(json.dumps(report, indent=2))
+        else:
+            print(f"STRESS — {report['arenas']} seeds  profile={report['profile']}")
+            print("=" * 64)
+            print(
+                f"Arena #1 wins  : {report['wins']}/{report['arenas']} "
+                f"({report['win_pct']:.0%})"
+            )
+            print(
+                f"Beat Muse+Grok : {report['beats_muse_grok']}/{report['arenas']} "
+                f"({report['beats_muse_grok_pct']:.0%})"
+            )
+            print(f"Median comp    : {report['median_composite']}")
+            print(f"Best / worst # : {report['best_rank']} / {report['worst_rank']}")
+            print(f"Avg win rate   : {report['avg_win_rate']:.1%}")
+            print(f"Avg PnL        : ${report['avg_pnl']:,.2f}")
+            print("\nPer seed:")
+            for row in report["detail"]:
+                if row["we_win"]:
+                    flag = "WIN"
+                elif row["beats_muse_grok"]:
+                    flag = "AI✓"
+                else:
+                    flag = f"#{row['our_rank']}"
+                print(
+                    f"  seed={row['seed']:<5} {flag:<4}  "
+                    f"comp={row['our_composite']:<7}  "
+                    f"WR={row['our_win_rate']:.0%}  "
+                    f"PnL=${row['our_pnl']:,.0f}"
+                )
         return 0
 
     return 1

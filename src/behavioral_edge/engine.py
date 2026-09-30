@@ -1,4 +1,4 @@
-"""Orchestrates detectors + profiles + meta-labeler + risk."""
+"""Orchestrates detectors + profiles + meta-labeler + conflict veto + risk."""
 
 from __future__ import annotations
 
@@ -44,6 +44,17 @@ class BehavioralEdgeEngine:
                     continue
             out.append(shaped)
         out.sort(key=lambda s: (s.edge_score or s.strength), reverse=True)
+
+        # Conflict veto: long+short both firing with close edges → sit out
+        longs = [s for s in out if s.side == "long"]
+        shorts = [s for s in out if s.side == "short"]
+        if longs and shorts:
+            best_l = longs[0].edge_score or longs[0].strength
+            best_s = shorts[0].edge_score or shorts[0].strength
+            if abs(best_l - best_s) < 0.12:
+                return []
+            # Keep only the clearly stronger side
+            out = longs if best_l > best_s else shorts
         return out
 
     def plan_trade(
@@ -64,7 +75,6 @@ class BehavioralEdgeEngine:
             sig = signal
         idx = len(df) - 1 if i is None else i
         price = float(df["close"].iloc[idx])
-        # Realized vol for vol-targeting (annualized fraction → daily)
         from behavioral_edge.features import realized_vol
 
         rv = float(realized_vol(df["close"], 20).iloc[idx])

@@ -21,7 +21,8 @@ def run_arena(
 ) -> dict:
     """
     Multi-fighter ranking on one tape.
-    Winner = highest risk-adjusted composite (Sharpe + PF − DD + WR + PnL).
+    Winner = highest risk-adjusted composite.
+    Also reports whether we beat both Muse- and Grok-class stacks.
     """
     prof = profile or HIGH_WIN
     ours = run_backtest(
@@ -42,21 +43,24 @@ def run_arena(
     scored = []
     for f in fighters:
         s = f.summary()
-        scored.append(
-            {
-                **s,
-                "composite": round(_composite_score(s), 3),
-            }
-        )
+        scored.append({**s, "composite": round(_composite_score(s), 3)})
     scored.sort(key=lambda r: r["composite"], reverse=True)
     winner = scored[0]["label"]
     our_row = next(r for r in scored if r["label"].startswith("behavioral_edge"))
+    our_comp = our_row["composite"]
+    muse = next(r for r in scored if r["label"] == "muse_macd_bb")
+    grok = next(r for r in scored if r["label"] == "grok_sma_rsi")
+    beats_ai = our_comp > muse["composite"] and our_comp > grok["composite"]
+
     return {
         "ranking": scored,
         "winner": winner,
         "we_win": winner.startswith("behavioral_edge"),
+        "beats_muse_grok": beats_ai,
         "our_rank": next(
-            i + 1 for i, r in enumerate(scored) if r["label"].startswith("behavioral_edge")
+            i + 1
+            for i, r in enumerate(scored)
+            if r["label"].startswith("behavioral_edge")
         ),
         "margin_vs_second": round(
             scored[0]["composite"] - scored[1]["composite"], 3

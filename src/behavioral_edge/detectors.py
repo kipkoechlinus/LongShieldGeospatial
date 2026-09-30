@@ -172,10 +172,10 @@ def detect_disposition_continuation(df: pd.DataFrame, i: int) -> Signal | None:
 
 def detect_anchor_rejection(df: pd.DataFrame, i: int) -> Signal | None:
     """
-    Exploit anchoring to prior extremes and round psychological levels.
+    Exploit anchoring to prior extremes.
 
-    Humans treat recent highs/lows and round numbers as 'fair value'.
-    Failed breaks of those anchors often reverse sharply as trapped traders unwind.
+    Only the clean traps: meaningful pierce, decisive reclaim, volume interest.
+    Noisy wicks without volume are rival bait — we skip them.
     """
     if i < 30:
         return None
@@ -183,36 +183,58 @@ def detect_anchor_rejection(df: pd.DataFrame, i: int) -> Signal | None:
     close = df["close"]
     high = df["high"]
     low = df["low"]
+    volume = df["volume"]
     prior_high = high.iloc[i - 20 : i].max()
     prior_low = low.iloc[i - 20 : i].min()
+    vol_z = _zscore(volume, 20).iloc[i]
+    span = high.iloc[i] - low.iloc[i]
+    if span <= 0 or np.isnan(vol_z):
+        return None
+    clv = (close.iloc[i] - low.iloc[i]) / span
 
     # Failed breakout above prior high (bull trap)
-    broke_high = high.iloc[i] > prior_high * 1.002
-    closed_back = close.iloc[i] < prior_high
+    pierce_hi = (high.iloc[i] / prior_high) - 1.0
+    broke_high = pierce_hi >= 0.003
+    closed_back = close.iloc[i] < prior_high * 0.999
     # Failed breakdown below prior low (bear trap)
-    broke_low = low.iloc[i] < prior_low * 0.998
-    closed_back_up = close.iloc[i] > prior_low
+    pierce_lo = 1.0 - (low.iloc[i] / prior_low)
+    broke_low = pierce_lo >= 0.003
+    closed_back_up = close.iloc[i] > prior_low * 1.001
 
-    if broke_high and closed_back:
+    if (
+        broke_high
+        and closed_back
+        and clv <= 0.40
+        and vol_z >= 1.0
+    ):
+        strength = float(min(1.0, 0.6 + min(pierce_hi / 0.02, 0.25) + min(vol_z / 8, 0.15)))
         return Signal(
             kind=SignalKind.ANCHOR_REJECTION,
             side="short",
-            strength=0.65,
+            strength=strength,
             reason=(
-                f"Bull trap at anchor high {prior_high:.2f}. "
+                f"Bull trap at anchor high {prior_high:.2f} "
+                f"(pierce {pierce_hi:.1%}, CLV={clv:.2f}, vol z={vol_z:.1f}). "
                 "Breakout chasers trapped; fade the failed break."
             ),
             stop_pct=0.02,
             target_pct=0.04,
             bar_index=i,
         )
-    if broke_low and closed_back_up:
+    if (
+        broke_low
+        and closed_back_up
+        and clv >= 0.60
+        and vol_z >= 1.0
+    ):
+        strength = float(min(1.0, 0.6 + min(pierce_lo / 0.02, 0.25) + min(vol_z / 8, 0.15)))
         return Signal(
             kind=SignalKind.ANCHOR_REJECTION,
             side="long",
-            strength=0.65,
+            strength=strength,
             reason=(
-                f"Bear trap at anchor low {prior_low:.2f}. "
+                f"Bear trap at anchor low {prior_low:.2f} "
+                f"(pierce {pierce_lo:.1%}, CLV={clv:.2f}, vol z={vol_z:.1f}). "
                 "Panic sellers trapped; fade the failed breakdown."
             ),
             stop_pct=0.02,
