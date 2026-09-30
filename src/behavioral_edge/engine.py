@@ -26,15 +26,18 @@ class BehavioralEdgeEngine:
         *,
         open_risk_dollars: float = 0.0,
         open_positions: int = 0,
+        signal: Signal | None = None,
     ) -> PositionPlan | None:
-        signals = self.signals_at(df, i)
-        if not signals:
-            return None
+        sig = signal
+        if sig is None:
+            signals = self.signals_at(df, i)
+            if not signals:
+                return None
+            sig = signals[0]
         idx = len(df) - 1 if i is None else i
         price = float(df["close"].iloc[idx])
-        # Take the strongest behavioral read only — no kitchen-sink stacking
         return size_position(
-            signals[0],
+            sig,
             price,
             self.risk,
             open_risk_dollars=open_risk_dollars,

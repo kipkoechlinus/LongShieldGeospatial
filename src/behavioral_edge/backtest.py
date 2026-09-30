@@ -1,14 +1,16 @@
-"""Tiny event-driven backtest for behavioral signals."""
+"""Event-driven backtest + naive baseline for head-to-head proof."""
 
 from __future__ import annotations
 
+from collections import defaultdict
 from dataclasses import dataclass, field
 
+import numpy as np
 import pandas as pd
 
 from behavioral_edge.engine import BehavioralEdgeEngine
 from behavioral_edge.risk import RiskConfig
-from behavioral_edge.signals import Signal
+from behavioral_edge.signals import Signal, SignalKind
 
 
 @dataclass
@@ -28,6 +30,7 @@ class Trade:
 class BacktestResult:
     trades: list[Trade] = field(default_factory=list)
     equity_curve: list[float] = field(default_factory=list)
+    label: str = "behavioral_edge"
 
     @property
     def total_pnl(self) -> float:
@@ -38,8 +41,87 @@ class BacktestResult:
         closed = [t for t in self.trades if t.pnl is not None]
         if not closed:
             return 0.0
-        wins = sum(1 for t in closed if t.pnl > 0)
-        return wins / len(closed)
+        return sum(1 for t in closed if (t.pnl or 0) > 0) / len(closed)
+
+    @property
+    def expectancy(self) -> float:
+        closed = [t.pnl for t in self.trades if t.pnl is not None]
+        return float(np.mean(closed)) if closed else 0.0
+
+    @property
+    def profit_factor(self) -> float:
+        wins = sum(t.pnl for t in self.trades if t.pnl and t.pnl > 0)
+        losses = sum(-t.pnl for t in self.trades if t.pnl and t.pnl < 0)
+        if losses <= 0:
+            return float("inf") if wins > 0 else 0.0
+        return wins / losses
+
+    @property
+    def max_drawdown(self) -> float:
+        if not self.equity_curve:
+            return 0.0
+        eq = np.array(self.equity_curve, dtype=float)
+        peak = np.maximum.accumulate(eq)
+        dd = (eq - peak) / peak
+        return float(dd.min())
+
+    @property
+    def sharpe_like(self) -> float:
+        """Per-trade Sharpe proxy (not annualized) — enough to rank systems."""
+        pnls = np.array([t.pnl for t in self.trades if t.pnl is not None], dtype=float)
+        if len(pnls) < 2:
+            return 0.0
+        std = pnls.std(ddof=0)
+        return float(pnls.mean() / std) if std > 0 else 0.0
+
+    def attribution(self) -> dict[str, dict[str, float]]:
+        buckets: dict[str, list[float]] = defaultdict(list)
+        for t in self.trades:
+            if t.pnl is not None:
+                buckets[t.signal.kind.value].append(t.pnl)
+        out: dict[str, dict[str, float]] = {}
+        for kind, pnls in buckets.items():
+            arr = np.array(pnls, dtype=float)
+            out[kind] = {
+                "trades": float(len(arr)),
+                "pnl": float(arr.sum()),
+                "win_rate": float((arr > 0).mean()),
+                "expectancy": float(arr.mean()),
+            }
+        return out
+
+    def summary(self) -> dict[str, float | int | str]:
+        return {
+            "label": self.label,
+            "trades": len(self.trades),
+            "win_rate": round(self.win_rate, 3),
+            "total_pnl": round(self.total_pnl, 2),
+            "expectancy": round(self.expectancy, 2),
+            "profit_factor": round(self.profit_factor, 3)
+            if self.profit_factor != float("inf")
+            else "inf",
+            "max_drawdown": round(self.max_drawdown, 4),
+            "sharpe_like": round(self.sharpe_like, 3),
+            "final_equity": round(self.equity_curve[-1], 2) if self.equity_curve else 0.0,
+        }
+
+
+def _confirm_entry(df: pd.DataFrame, signal: Signal, i: int) -> bool:
+    """
+    Soft confirmation — block only clear adverse follow-through.
+
+    We allow doji / mild continuation; we reject only when the crowd
+    immediately proves the thesis wrong on the confirmation bar.
+    """
+    o = float(df["open"].iloc[i])
+    c = float(df["close"].iloc[i])
+    # Adverse move > 0.6% against thesis → skip
+    ret = (c - o) / o if o else 0.0
+    if signal.side == "long" and ret <= -0.006:
+        return False
+    if signal.side == "short" and ret >= 0.006:
+        return False
+    return True
 
 
 def run_backtest(
@@ -47,44 +129,77 @@ def run_backtest(
     *,
     risk: RiskConfig | None = None,
     engine: BehavioralEdgeEngine | None = None,
+    require_confirmation: bool = True,
+    label: str = "behavioral_edge",
 ) -> BacktestResult:
     """
-    Enter next open after signal; exit on stop, target, or time stop (8 bars).
-    One position at a time — clarity over complexity.
+    Signal on bar i → soft confirmation on bar i+1 → enter bar i+2 open
+    (or next-open if confirmation disabled).
+    Exit on stop, target, or time stop (8 bars). One position at a time.
     """
     eng = engine or BehavioralEdgeEngine(risk=risk or RiskConfig())
-    result = BacktestResult()
+    result = BacktestResult(label=label)
     equity = eng.risk.account_equity
     result.equity_curve.append(equity)
 
     open_trade: Trade | None = None
     pending_signal: Signal | None = None
+    pending_from: int | None = None
     entry_bar: int | None = None
 
     for i in range(len(df)):
-        # Fill pending entry at this open
-        if pending_signal is not None and open_trade is None:
-            px = float(df["open"].iloc[i])
-            plan = eng.plan_trade(
-                df,
-                pending_signal.bar_index,
-                open_positions=0,
-            )
-            if plan is not None:
-                open_trade = Trade(
-                    entry_time=df.index[i],
-                    exit_time=None,
-                    side=plan.side,
-                    entry=px,
-                    exit=None,
-                    shares=plan.shares,
-                    pnl=None,
-                    signal=pending_signal,
-                )
-                entry_bar = i
-            pending_signal = None
+        if pending_signal is not None and open_trade is None and pending_from is not None:
+            if require_confirmation:
+                if i == pending_from + 1:
+                    if not _confirm_entry(df, pending_signal, i):
+                        pending_signal = None
+                        pending_from = None
+                elif i == pending_from + 2:
+                    px = float(df["open"].iloc[i])
+                    plan = eng.plan_trade(
+                        df,
+                        pending_signal.bar_index,
+                        open_positions=0,
+                        signal=pending_signal,
+                    )
+                    if plan is not None:
+                        open_trade = Trade(
+                            entry_time=df.index[i],
+                            exit_time=None,
+                            side=plan.side,
+                            entry=px,
+                            exit=None,
+                            shares=plan.shares,
+                            pnl=None,
+                            signal=pending_signal,
+                        )
+                        entry_bar = i
+                    pending_signal = None
+                    pending_from = None
+            else:
+                if i == pending_from + 1:
+                    px = float(df["open"].iloc[i])
+                    plan = eng.plan_trade(
+                        df,
+                        pending_signal.bar_index,
+                        open_positions=0,
+                        signal=pending_signal,
+                    )
+                    if plan is not None:
+                        open_trade = Trade(
+                            entry_time=df.index[i],
+                            exit_time=None,
+                            side=plan.side,
+                            entry=px,
+                            exit=None,
+                            shares=plan.shares,
+                            pnl=None,
+                            signal=pending_signal,
+                        )
+                        entry_bar = i
+                    pending_signal = None
+                    pending_from = None
 
-        # Manage open trade
         if open_trade is not None and entry_bar is not None and i > entry_bar:
             high = float(df["high"].iloc[i])
             low = float(df["low"].iloc[i])
@@ -99,6 +214,18 @@ def run_backtest(
                 if open_trade.side == "long"
                 else open_trade.entry * (1 - open_trade.signal.target_pct)
             )
+            # Trail stop to breakeven after +1R favorable excursion
+            signed_fav = (
+                (high - open_trade.entry) / open_trade.entry
+                if open_trade.side == "long"
+                else (open_trade.entry - low) / open_trade.entry
+            )
+            if signed_fav >= open_trade.signal.stop_pct:
+                if open_trade.side == "long":
+                    stop = max(stop, open_trade.entry)
+                else:
+                    stop = min(stop, open_trade.entry)
+
             exit_px = None
             reason = None
             if open_trade.side == "long":
@@ -128,10 +255,167 @@ def run_backtest(
 
         result.equity_curve.append(equity)
 
-        # New signal only when flat
-        if open_trade is None and pending_signal is None and i < len(df) - 1:
+        lookahead = 2 if require_confirmation else 1
+        if (
+            open_trade is None
+            and pending_signal is None
+            and i < len(df) - lookahead
+        ):
             sigs = eng.signals_at(df, i)
-            if sigs and sigs[0].strength >= eng.risk.min_strength:
-                pending_signal = sigs[0]
+            if sigs:
+                edge = sigs[0].edge_score or sigs[0].strength
+                if (
+                    sigs[0].strength >= eng.risk.min_strength
+                    and edge >= eng.risk.min_edge
+                ):
+                    pending_signal = sigs[0]
+                    pending_from = i
 
     return result
+
+
+def run_naive_rsi_baseline(
+    df: pd.DataFrame,
+    *,
+    equity: float = 100_000.0,
+    risk_frac: float = 0.005,
+) -> BacktestResult:
+    """
+    Generic 'LLM starter pack' strategy: fade RSI extremes, fixed 2% stop / 4% target.
+    Used as the sparring partner Claude-style algos often ship first.
+    """
+    close = df["close"]
+    delta = close.diff()
+    gain = delta.clip(lower=0).rolling(14).mean()
+    loss = (-delta.clip(upper=0)).rolling(14).mean()
+    rs = gain / loss.replace(0, np.nan)
+    rsi = 100 - (100 / (1 + rs))
+
+    result = BacktestResult(label="naive_rsi_fade")
+    cash = equity
+    result.equity_curve.append(cash)
+    open_trade: Trade | None = None
+    entry_bar: int | None = None
+    pending_side: str | None = None
+
+    for i in range(len(df)):
+        if pending_side and open_trade is None:
+            px = float(df["open"].iloc[i])
+            stop_pct = 0.02
+            risk_dollars = equity * risk_frac
+            shares = risk_dollars / (px * stop_pct)
+            open_trade = Trade(
+                entry_time=df.index[i],
+                exit_time=None,
+                side=pending_side,
+                entry=px,
+                exit=None,
+                shares=shares,
+                pnl=None,
+                signal=Signal(
+                    kind=SignalKind.ANCHOR_REJECTION,
+                    side=pending_side,
+                    strength=0.5,
+                    reason="naive RSI fade",
+                    stop_pct=stop_pct,
+                    target_pct=0.04,
+                    bar_index=i - 1,
+                    edge_score=0.5,
+                ),
+            )
+            entry_bar = i
+            pending_side = None
+
+        if open_trade is not None and entry_bar is not None and i > entry_bar:
+            high = float(df["high"].iloc[i])
+            low = float(df["low"].iloc[i])
+            c = float(df["close"].iloc[i])
+            stop = (
+                open_trade.entry * 0.98
+                if open_trade.side == "long"
+                else open_trade.entry * 1.02
+            )
+            target = (
+                open_trade.entry * 1.04
+                if open_trade.side == "long"
+                else open_trade.entry * 0.96
+            )
+            exit_px = None
+            reason = None
+            if open_trade.side == "long":
+                if low <= stop:
+                    exit_px, reason = stop, "stop"
+                elif high >= target:
+                    exit_px, reason = target, "target"
+            else:
+                if high >= stop:
+                    exit_px, reason = stop, "stop"
+                elif low <= target:
+                    exit_px, reason = target, "target"
+            if exit_px is None and i - entry_bar >= 8:
+                exit_px, reason = c, "time"
+            if exit_px is not None:
+                signed = 1 if open_trade.side == "long" else -1
+                pnl = signed * (exit_px - open_trade.entry) * open_trade.shares
+                open_trade.exit = exit_px
+                open_trade.exit_time = df.index[i]
+                open_trade.pnl = pnl
+                open_trade.exit_reason = reason
+                cash += pnl
+                result.trades.append(open_trade)
+                open_trade = None
+                entry_bar = None
+
+        result.equity_curve.append(cash)
+
+        if open_trade is None and pending_side is None and i < len(df) - 1:
+            r = float(rsi.iloc[i]) if not np.isnan(rsi.iloc[i]) else 50.0
+            if r <= 30:
+                pending_side = "long"
+            elif r >= 70:
+                pending_side = "short"
+
+    return result
+
+
+def _composite_score(summary: dict) -> float:
+    """Risk-adjusted duel score — how pros rank systems, not raw lottery PnL."""
+    pf = summary["profit_factor"]
+    pf_v = 3.0 if pf == "inf" else float(pf)
+    return (
+        float(summary["sharpe_like"]) * 3.0
+        + pf_v
+        + float(summary["total_pnl"]) / 2000.0
+        - abs(float(summary["max_drawdown"])) * 25.0
+        + float(summary["win_rate"])
+    )
+
+
+def head_to_head(df: pd.DataFrame, *, equity: float = 100_000.0) -> dict:
+    """Compare behavioral edge vs naive RSI fade on the same tape."""
+    ours = run_backtest(
+        df,
+        engine=BehavioralEdgeEngine(risk=RiskConfig(account_equity=equity)),
+        require_confirmation=True,
+        label="behavioral_edge",
+    )
+    theirs = run_naive_rsi_baseline(df, equity=equity)
+    us_score = _composite_score(ours.summary())
+    them_score = _composite_score(theirs.summary())
+    if us_score > them_score:
+        winner = "behavioral_edge"
+    elif them_score > us_score:
+        winner = "naive_rsi_fade"
+    else:
+        winner = "tie"
+    return {
+        "behavioral_edge": ours.summary(),
+        "naive_rsi_fade": theirs.summary(),
+        "attribution": ours.attribution(),
+        "composite_scores": {
+            "behavioral_edge": round(us_score, 3),
+            "naive_rsi_fade": round(them_score, 3),
+        },
+        "winner": winner,
+        "pnl_edge": round(ours.total_pnl - theirs.total_pnl, 2),
+    }

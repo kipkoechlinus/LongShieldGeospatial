@@ -13,6 +13,7 @@ class RiskConfig:
     risk_per_trade: float = 0.005  # 0.5% account risk
     max_open_risk: float = 0.015  # 1.5% total open risk
     min_strength: float = 0.55
+    min_edge: float = 0.55  # regime + confluence gate
     max_positions: int = 3
 
 
@@ -37,12 +38,13 @@ def size_position(
     """
     Position sizing that exploits *our* discipline vs their emotion.
 
-    Humans oversize when confident and revenge-size after losses.
-    We size from stop distance only, and refuse trades that break risk caps.
+    Gate on edge_score (regime + confluence + R:R), then size from stop.
+    Conviction scales risk gently — never revenge-size.
     """
     if price <= 0:
         raise ValueError("price must be positive")
-    if signal.strength < config.min_strength:
+    edge = signal.edge_score or signal.strength
+    if signal.strength < config.min_strength or edge < config.min_edge:
         return None
     if open_positions >= config.max_positions:
         return None
@@ -53,9 +55,9 @@ def size_position(
         return None
 
     risk_dollars = min(risk_budget, remaining)
-    # Scale slightly with conviction, but never more than 1.25x base risk
-    risk_dollars *= 0.85 + 0.4 * signal.strength
-    risk_dollars = min(risk_dollars, remaining)
+    # Scale with edge, hard-capped at 1.35x base risk
+    risk_dollars *= 0.75 + 0.6 * edge
+    risk_dollars = min(risk_dollars, remaining, risk_budget * 1.35)
 
     stop_distance = price * signal.stop_pct
     shares = risk_dollars / stop_distance

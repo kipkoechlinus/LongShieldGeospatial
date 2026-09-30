@@ -230,14 +230,19 @@ DETECTORS = (
 )
 
 
-def scan_bar(df: pd.DataFrame, i: int) -> list[Signal]:
-    """Run all behavioral detectors on bar i; return non-null signals."""
+def scan_bar(df: pd.DataFrame, i: int, *, apply_confluence: bool = True) -> list[Signal]:
+    """Run detectors, optionally re-score with confluence + regime gate."""
+    from behavioral_edge.confluence import score_confluence
+
     out: list[Signal] = []
     for detector in DETECTORS:
         sig = detector(df, i)
-        if sig is not None:
-            sig.validate()
-            out.append(sig)
-    # Prefer strongest behavioral read when multiple fire
-    out.sort(key=lambda s: s.strength, reverse=True)
+        if sig is None:
+            continue
+        if apply_confluence:
+            sig = score_confluence(df, sig)
+        sig.validate()
+        out.append(sig)
+    # Rank by edge_score when present, else raw strength
+    out.sort(key=lambda s: (s.edge_score or s.strength), reverse=True)
     return out

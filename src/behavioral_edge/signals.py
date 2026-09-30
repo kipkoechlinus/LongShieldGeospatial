@@ -24,11 +24,17 @@ class Signal:
     stop_pct: float
     target_pct: float
     bar_index: int
+    confluence: float = 0.0  # microstructure agreement 0..1
+    edge_score: float = 0.0  # tradeability after regime + confluence + R:R
 
     def validate(self) -> None:
         if self.side not in {"long", "short"}:
             raise ValueError(f"invalid side: {self.side}")
         if not 0.0 <= self.strength <= 1.0:
             raise ValueError(f"strength must be in [0, 1], got {self.strength}")
+        if not 0.0 <= self.confluence <= 1.0:
+            raise ValueError(f"confluence must be in [0, 1], got {self.confluence}")
+        if not 0.0 <= self.edge_score <= 1.0:
+            raise ValueError(f"edge_score must be in [0, 1], got {self.edge_score}")
         if self.stop_pct <= 0 or self.target_pct <= 0:
             raise ValueError("stop_pct and target_pct must be positive")
