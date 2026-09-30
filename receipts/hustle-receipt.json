@@ -1,7 +1,7 @@
 {
   "receipt_type": "behavioral_edge.hustle",
-  "version": "0.6.0",
-  "git_sha": "bc12e8b2e8928021cb5c02b2c6a5115523bfc4b1",
+  "version": "0.6.1",
+  "git_sha": "7d2953bdc883479747c6b6f03a1177426cff5596",
   "methodology": {
     "market": "synthetic_behavioral_tape",
     "generator": "behavioral_edge.data.make_behavioral_tape",
@@ -170,7 +170,7 @@
   },
   "seal": {
     "alg": "sha256",
-    "digest": "6748ccf67a54279d8a549616504b5f346df5ffb456fbf6851b96eb5569a78d0c",
-    "sealed_at": "2026-09-30T03:10:27.442169+00:00"
+    "digest": "2b89186beaac5011f07c621321fe8ae23a74b772a5dcdd3ecdb3543471ac46d3",
+    "sealed_at": "2026-09-30T03:10:46.751369+00:00"
   }
 }
