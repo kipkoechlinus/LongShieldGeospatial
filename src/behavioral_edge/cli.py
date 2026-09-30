@@ -136,6 +136,24 @@ def main(argv: list[str] | None = None) -> int:
         help="optional path to write JSON results",
     )
 
+    fetch = sub.add_parser(
+        "fetch",
+        help="Download last N months of OHLCV (warm-up included) into data/ohlcv_4mo",
+    )
+    fetch.add_argument("--months", type=int, default=4)
+    fetch.add_argument(
+        "--symbols",
+        default="",
+        help="comma-separated tickers (default: equities + crypto six + majors contrast)",
+    )
+    fetch.add_argument("--crypto", action="store_true", help="crypto six only")
+    fetch.add_argument(
+        "--out-dir",
+        default="data/ohlcv_4mo",
+        help="cache directory for CSVs + manifest.json",
+    )
+    fetch.add_argument("--json", action="store_true")
+
     args = parser.parse_args(argv)
     profile = PROFILES.get(getattr(args, "profile", None) or "hustle", HUSTLE)
     risk = RiskConfig(account_equity=getattr(args, "equity", 100_000))
@@ -445,6 +463,44 @@ def main(argv: list[str] | None = None) -> int:
                 for flag in report["methodology_flags"]:
                     print(f"  • {flag}")
             print(report["note"])
+        return 0
+
+    if args.cmd == "fetch":
+        from behavioral_edge.live_test import CRYPTO_UNIVERSE, DEFAULT_UNIVERSE
+        from behavioral_edge.market_data import fetch_and_cache_window
+
+        if args.symbols.strip():
+            symbols = tuple(s.strip().upper() for s in args.symbols.split(",") if s.strip())
+        elif args.crypto:
+            symbols = CRYPTO_UNIVERSE
+        else:
+            symbols = DEFAULT_UNIVERSE + CRYPTO_UNIVERSE + (
+                "SOL-USD",
+                "XRP-USD",
+                "BNB-USD",
+                "DOGE-USD",
+            )
+        meta = fetch_and_cache_window(
+            symbols,
+            months=args.months,
+            cache_dir=args.out_dir,
+        )
+        if args.json:
+            print(json.dumps(meta, indent=2))
+        else:
+            print(
+                f"FETCHED {meta['months']}mo window  "
+                f"{meta['fetch_start']} → {meta['end']}  "
+                f"(score from {meta['score_start']})"
+            )
+            print(f"Cache dir : {args.out_dir}")
+            for sym, info in meta["symbols"].items():
+                print(
+                    f"  {sym:<10} bars={info['bars_total']:>4} "
+                    f"scored={info['bars_scored']:>4}  "
+                    f"{info['first']} → {info['last']}"
+                )
+            print(f"Manifest  : {args.out_dir}/manifest.json")
         return 0
 
     if args.cmd == "live":

@@ -12,6 +12,7 @@ python3 -m behavioral_edge.cli hustle
 python3 -m behavioral_edge.cli hustle --stress
 python3 -m behavioral_edge.cli receipt --out receipts/hustle-receipt.json
 python3 -m behavioral_edge.cli compare --ours receipts/hustle-receipt.json --theirs receipts/RIVAL_RECEIPT_TEMPLATE.json
+python3 -m behavioral_edge.cli fetch --months 4          # cache OHLCV → data/ohlcv_4mo/
 python3 -m behavioral_edge.cli live --months 4 --profile hustle --out receipts/live-4mo-hustle.json
 python3 -m pytest -q
 ```
